@@ -1,0 +1,281 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+
+<div class="profile-container">
+    <!-- Main Content -->
+    <main class="profile-content">
+        <div class="content-header">
+            <h1 class="content-title">
+                <i class="fas fa-user-circle"></i>
+                Informations du profil
+            </h1>
+        </div>
+
+        <div class="info-grid">
+            <!-- Informations personnelles -->
+            <div class="info-card">
+                {% comment %} <div class="info-header">
+                    <i class="fas fa-user"></i>
+                    <h3>Informations personnelles</h3>
+                </div>
+                <div class="info-content">
+                    <div class="info-item">
+                        <div class="info-label">Nom complet</div>
+                        <div class="info-value">{{ Admin.nom }} {{ Admin.prenom }}</div>
+                    </div>
+                </div> {% endcomment %}
+                <div class="info-header">
+                        <i class="fas fa-user"></i>
+                        <h3>Informations personnelles</h3>
+                    </div>
+                    <div class="info-content">
+                        <!-- Section Photo de profil -->
+                        <div class="info-item profile-picture">
+                            <div class="info-label">Photo de profil</div>
+                            <div class="info-value">
+                                {% if Admin.image %}
+                                    <img src="{{ Admin.image.url }}" alt="Photo de {{ Admin.nom }}" class="admin-avatar">
+                                {% else %}
+                                    <div class="default-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Section Nom complet -->
+                        <div class="info-item">
+                            <div class="info-label">Nom complet</div>
+                            <div class="info-value">{{ Admin.nom }} {{ Admin.prenom }}</div>
+                        </div>
+                    </div>
+                </div>
+        
+            <!-- Informations de compte -->
+            <div class="info-card">
+                <div class="info-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Informations de compte</h3>
+                </div>
+                <div class="info-content">
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ Admin.email }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Rôle</div>
+                        <div class="info-value">Administrateur</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Date d'inscription</div>
+                        <div class="info-value">{{ Admin.date_joined |date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="info-card">
+                <div class="info-header">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Statistiques</h3>
+                </div>
+                <div class="info-content">
+                    <div class="info-item">
+                        <div class="info-label">Annonces gérées</div>
+                        <div class="info-value">{{ total_annonces }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Utilisateurs actifs</div>
+                        <div class="info-value">{{ total_users }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Dernière connexion</div>
+                        <div class="info-value">{{ Admin.last_login|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            {% comment %} <button class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                Modifier le profil
+            </button> {% endcomment %}
+            <button onclick="window.location.href='{% url 'Profil_Modifier_Admin' %}'" class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                Modifier le profil
+            </button>
+            <button  onclick="window.location.href='{% url 'password_reset_request'  Admin.id %}'" class="btn btn-secondary">
+                <i class="fas fa-key"></i>
+                Changer le mot de passe
+            </button>
+        </div>
+    </main>
+</div>
+
+<style>
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 0 0 auto;
+        padding: 2rem;
+    }
+
+    .profile-content {
+        background: rgba(245, 236, 224, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 5rem;
+        box-shadow: var(--glass-shadow);
+        border: 1px solid var(--glass-border);
+    }
+
+    .content-header {
+        margin-bottom: 2rem;
+    }
+
+    .content-title {
+        font-size: 1.8rem;
+        color: var(--deep-purple);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .content-title i {
+        color: var(--orange);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-card {
+        background: rgba(255, 255, 255, 0.5);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .info-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: var(--burgundy);
+    }
+
+    .info-header i {
+        font-size: 1.5rem;
+        color: var(--orange);
+    }
+
+    .info-content {
+        color: var(--deep-purple);
+    }
+
+    .info-item {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        color: var(--burgundy);
+        margin-bottom: 0.3rem;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: var(--burgundy);
+        color: var(--light-beige);
+    }
+
+    .btn-secondary {
+        background: var(--orange);
+        color: var(--light-beige);
+    }
+
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    /* Style pour l'avatar */
+        .admin-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #eee;
+    }
+
+    .default-avatar {
+        font-size: 100px;
+        color: var(--burgundy) ;
+    }
+
+    .profile-picture {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .info-item {
+        margin-bottom: 15px;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 5px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .profile-container {
+            padding: 1rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+{% endblock %}

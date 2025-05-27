@@ -1,0 +1,648 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profil - {{ user.username }}{% endblock %}
+
+{% block content %}
+ {% block sidebar %}{% endblock sidebar %}
+<div class="col-md-20 col-lg-20 main-content">
+    <div class="row">
+        <!-- Sidebar avec informations utilisateur -->
+        <div class="col-md-4 mb-4">
+            <div class="profile-sidebar">
+                <div class="profile-header text-center mb-4">
+                    <div class="profile-avatar mb-3">
+                        {% if user.image  == 'https://static.vecteezy.com/system/resources/previews/008/442/086/non_2x/illustration-of-human-icon-user-symbol-icon-modern-design-on-blank-background-free-vector.jpg' %}
+                            <img src="{{ user.image }}" alt="User Image" class="rounded-circle">
+                        {% else %}
+                            <img src="{{ user.image.url }}" alt="User Image" class="rounded-circle">
+                        {% endif %}
+                    </div>
+                    <h3 class="profile-name">{{ user.nom }} {{ user.prenom }}</h3>
+                    <p class="profile-email">{{ user.email }}</p>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ user_ads_count |default:0 }}</span>
+                            <span class="stat-label">Annonces</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ user_favorites_count|default:0 }}</span>
+                            <span class="stat-label">Favoris</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-info">
+                    <h4 class="section-title" style="font-size: 20px; margin-right: 10px;" >Informations personnelles</h4>
+                    <div class="info-item">
+                        <i class="fas fa-user"></i>
+                        <span>Nom complet: {{ user.nom }} {{ user.prenom }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <span>Téléphone: {{ user.numeroTelephone|default:"Non renseigné" }}</span>
+                    </div> 
+                     <div class="info-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Membre depuis: {{ user.date_joined|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Derniere connexion: {{ user.last_login|default:"Non renseignée" }}</span>
+                    </div>
+
+                </div>
+
+                <div class="profile-actions mt-4">
+                    <a href="{% url 'Profil_Modifier'  %}" class="btn btn-primary btn-block">
+                        <i class="fas fa-edit"></i> Modifier le profil
+                    </a>
+                    <a href="{% url 'password_reset_request'  %}" class="btn btn-outline-primary btn-block mt-2">
+                        <i class="fas fa-key"></i> Changer le mot de passe
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section principale avec les annonces -->
+        <div class="col-md-8">
+            <div class="profile-content">
+                <div class="content-header mb-4">
+                    <h2 class="section-title" style="margin-left: 32%;">Mes annonces</h2>
+                     
+                    
+                </div>
+
+                <!-- Filtres et recherche -->
+                {% comment %} <div class="filters-section mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="search-box">
+                                <form method="get" class="mb-4" action="{% url 'Chercher_annonce' %}">
+                                    <div class="input-group">
+                                        <input type="text" 
+                                            class="form-control" 
+                                            name="q" 
+                                            placeholder="Rechercher par titre ..."
+                                            value="{{ query }}">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>Chercher
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="filter-options">
+                                <form method="get" class="row g-3" action="{% url 'Chercher_annonce_statut' %}" >
+                                        <div class="col-md-3">
+                                            <select class="form-select" name="Statut" id="statut" onchange="this.form.submit()" style="padding-lef:8rem ;">
+                                                <option value="Statut">Statut</option>
+                                                <option value= '1' {% if  Statut  %}selected{% endif %}>Validee</option>
+                                                <option value= '0' {% if  Statut == False %}selected{% endif %}>En_attente</option>
+                                                <option value= 'All' >Tous</option>
+                                            </select>
+                                        </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                        <button class="btn btn-custom mb-4 w-25" data-bs-toggle="modal" data-bs-target="#addAnnonceModal" style="width: 50px;">
+                        <i class="fas fa-plus me-2" ></i> Ajouter une annonce
+                        </button>
+                        </div>
+                    </div>
+                </div> {% endcomment %}
+
+                <div class="filters-section mb-4">
+    <div class="row align-items-center">
+        <!-- Colonne de recherche (prend 5 colonnes sur 12 en md) -->
+        <div class="col-md-5">
+            <div class="search-box">
+                <form method="get" action="{% url 'Chercher_annonce' %}">
+                    <div class="input-group">
+                        <input type="text" 
+                            class="form-control" 
+                            name="q" 
+                            placeholder="Rechercher par titre ..."
+                            value="{{ query }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Chercher
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Colonne de filtre statut (prend 3 colonnes sur 12 en md) -->
+        <div class="col-md-3">
+            <div class="filter-options">
+                <form method="get" action="{% url 'Chercher_annonce_statut' %}">
+                    <select class="form-select" name="Statut" id="statut" onchange="this.form.submit()">
+                        <option value="Statut">Statut</option>
+                        <option value='1' {% if Statut %}selected{% endif %}>Validee</option>
+                        <option value='0' {% if Statut == False %}selected{% endif %}>En_attente</option>
+                        <option value='All'>Tous</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Colonne du bouton Ajouter (prend 4 colonnes sur 12 en md) -->
+        <div class="col-md-4 text-end">
+            <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#addAnnonceModal">
+                <i class="fas fa-plus me-2"></i> Ajouter une annonce
+            </button>
+        </div>
+    </div>
+</div>
+
+                <!-- Liste des annonces -->
+<!-- Dans la section Liste des annonces -->
+        <div class="ads-grid">
+            {% for ad in user_ads %}
+            <div class="ad-card">
+                <div class="ad-image">
+                    {% if ad.images %}
+                        <div id="annonceCarousel{{ ad.id }}" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                {% for image in ad.images %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <img src="{{ MEDIA_URL }}{{ image }}" class="d-block w-100" alt="Image annonce" style="height: 250px; object-fit: cover;">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel{{ ad.id }}" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Précédent</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel{{ ad.id }}" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Suivant</span>
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="no-image">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    {% endif %}
+                    
+                    
+                        <div class="ad-status {{ ad.statut }}" style="background-color: var(--orange);">
+                            {% if ad.statut %}
+                            <div class="stat-label">Validee</div>
+                            
+                            {% else %} 
+                                <div class="stat-label"> En attente</div>
+                            {% endif %}
+                            </div>
+                        </div>
+                        <div class="ad-content">
+                            <h5>Titreeee</h5>
+                            <h5>{{ ad.titre }}</h5>
+                                    <p class="text-muted">
+                                        <i class="fas fa-tag me-2"></i>
+                                        <span class="price-tag">Prix: {{ ad.prix }} €</span>
+                                    </p>
+                                    <p class="small text-truncate description">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {{ ad.description|truncatewords:15 }}
+                                    </p>
+                                    <p class="small text-muted">
+                                        <i class="far fa-calendar-alt me-2"></i>
+                                        {{ ad.datePublication|date:"d/m/Y" }}
+                                    </p>
+                                    <p class="small text-truncate description">
+                                        <i class="fas fa-user"></i>
+                                        {{ ad.user.nom }}
+                                    </p>
+                            <div class="ad-actions">
+                                <a href="{% url 'modifier_annonce' ad.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                                <a href="{% url 'detail_annonce' ad.id %}"   class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye "></i>Voir détails
+                                </a> 
+                                <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ ad.id }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                    
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-ads">
+                        <i class="fas fa-bullhorn"></i>
+                        <p>Vous n'avez pas encore publié d'annonces</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if user_ads.paginator.num_pages >= 1 %}
+                <div class="pagination-section mt-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if user_ads.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ user_ads.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Page {{ user_ads.number }} sur {{ user_ads.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if user_ads.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ user_ads.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ user_ads.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .pagination-section {
+        margin-top: 2rem;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .page-item {
+        margin: 0 5px;
+    }
+
+    .page-link {
+        color: var(--burgundy);
+        background-color: var(--light-beige);
+        border: 1px solid var(--glass-border);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .page-link:hover {
+        background-color: var(--burgundy);
+        color: var(--beige);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--burgundy);
+        border-color: var(--burgundy);
+        color: white;
+    }
+
+    .page-item.disabled .page-link {
+        color: var(--burgundy-light);
+        background-color: var(--light-beige);
+        opacity: 0.7;
+    }
+
+    @media (max-width: 576px) {
+        .page-item {
+            margin: 2px;
+        }
+        .page-link {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    .profile-sidebar {
+        background: var(--light-beige);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--glass-shadow);
+    }
+
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 3px solid var(--burgundy);
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        background: var(--light-beige);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        color: var(--burgundy);
+    }
+
+    .profile-name {
+        color: var(--deep-purple);
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-email {
+        color: var(--burgundy);
+        font-size: 0.9rem;
+    }
+
+    .profile-stats {
+        display: flex;
+        justify-content: space-around;
+        margin: 1.5rem 0;
+        padding: 1rem;
+        background: var(--glass-bg);
+        border-radius: 12px;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--burgundy);
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--deep-purple);
+    }
+
+    .section-title {
+        color: var(--deep-purple);
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.8rem;
+        background: var(--glass-bg);
+        border-radius: 8px;
+    }
+
+    .info-item i {
+        color: var(--burgundy);
+        margin-right: 1rem;
+        width: 20px;
+    }
+
+    .profile-content {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--glass-shadow);
+    }
+
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .filters-section {
+        background: var(--glass-bg);
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .ads-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .ad-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .ad-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .ad-image {
+        position: relative;
+        height: 200px;
+    }
+
+    .ad-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        background: var(--light-beige);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--burgundy);
+    }
+
+    .ad-status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .ad-status.active {
+        background: var(--success);
+        color: white;
+    }
+
+    .ad-status.pending {
+        background: var(--warning);
+        color: var(--deep-purple);
+    }
+
+    .ad-status.sold {
+        background: var(--danger);
+        color: white;
+    }
+
+    .ad-content {
+        padding: 1.5rem;
+    }
+
+    .ad-title {
+        color: var(--deep-purple);
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ad-description {
+        color: var(--text-color);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .ad-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .ad-price {
+        color: var(--orange);
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .ad-date {
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+
+    .ad-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .no-ads {
+        text-align: center;
+        padding: 3rem;
+        background: var(--glass-bg);
+        border-radius: 15px;
+    }
+
+    .no-ads i {
+        font-size: 3rem;
+        color: var(--burgundy);
+        margin-bottom: 1rem;
+    }
+
+    .pagination-section .page-link {
+        color: var(--burgundy);
+        border: 1px solid var(--glass-border);
+        margin: 0 0.2rem;
+        border-radius: 8px;
+    }
+
+    .pagination-section .page-item.active .page-link {
+        background: var(--burgundy);
+        border-color: var(--burgundy);
+        color: white;
+    }
+
+    .btn-primary {
+        background: var(--burgundy);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: var(--orange);
+    }
+
+    .btn-outline-primary {
+        color: var(--burgundy);
+        border-color: var(--burgundy);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--burgundy);
+        color: white;
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: var(--danger-hover);
+    }
+</style>
+
+<script>
+function confirmDelete(adId) {
+
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette annonce ???')) {
+            // Add your delete logic here
+            const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{% url 'Supprimer_anc' 0 %}`.replace('0', adId);
+                
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = 'csrfmiddlewaretoken';
+                csrf.value = '{{ csrf_token }}';
+                
+                form.appendChild(csrf);
+                document.body.appendChild(form);
+                form.submit();
+        }
+    }
+
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %} 

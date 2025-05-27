@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% for an in annonces %}
+        {{an.prix}}
+        {{an.images}}
+        {% for a in an.images  %}
+            <img src="{{ a }}" width="150">
+        {% endfor %}
+    {% endfor %}
+</body>
+</html>{% for annonce in annonces %}
+    <div class="annonce">
+        <h3>{{ annonce.titre }}</h3>
+        <p>{{ annonce.description }}</p>
+        
+        <div class="images">
+            {% for image in annonce.images %}
+                <img src="{{ MEDIA_URL }}{{ image }}" width="10%" alt="Image annonce">
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}

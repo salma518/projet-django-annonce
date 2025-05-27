@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accueil - Echo-Anc{% endblock %}
+
+
+{% block content %}
+<div class="col-md-9 col-lg-10 main-content">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="hero-section text-center">
+                <h1 class="display-4 mb-4">Bienvenue sur Echo-Anc</h1>
+                <p class="lead mb-4">Votre plateforme de confiance pour les petites annonces</p>
+                <div class="search-box mx-auto">
+                    <form  method="GET" action="{% url 'rechercher_annonce' %}" class="d-flex justify-content-center">
+                        <div class="input-group" style="max-width: 600px;">
+                            <input type="text" name="q" class="form-control" placeholder="Rechercher une annonce...">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i> Rechercher
+                            </button>
+                        </div>
+                    </form>
+                    <button class="btn btn-custom mb-4 w-100" data-bs-toggle="modal" data-bs-target="#addAnnonceModal">
+                    <i class="fas fa-plus me-2"></i> Ajouter une annonce
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Dashboard Section -->
+    {% if user.is_authenticated %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="dashboard-section">
+                <h2 class="mb-4">Tableau de bord</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-circle fa-3x mb-3"></i>
+                                <h5 class="card-title">Mon Profil</h5>
+                                <p class="card-text">Gérez vos informations personnelles</p>
+                                <a href="{% url 'Profil_User' user.id %}" class="btn btn-outline-primary">Consulter</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-bullhorn fa-3x mb-3"></i>
+                                <h5 class="card-title">Mes Annonces</h5>
+                                <p class="card-text">Gérez vos annonces publiées</p>
+                                <a  href="{% url 'mes_annonces' %}" class="btn btn-outline-primary">Voir mes annonces</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-heart fa-3x mb-3"></i>
+                                <h5 class="card-title">Favoris</h5>
+                                <p class="card-text">Consultez vos annonces favorites</p>
+                                <a href="{% url 'favoris' %}" class="btn btn-outline-primary">Voir les favoris</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Latest Ads -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Dernières annonces</h2>
+            <div class="row"> 
+                {% for annonce in annonces  %}
+                        {% if annonce.statut and annonce.user.id != user.id  %}
+
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div class="announcement-card">
+                                                <!-- Bouton favori -->
+                                               
+                                                <form method="post" action="{% url 'ajouter_favoris' annonce_id=annonce.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="favorite-btn" title="Ajouter au favoris">
+                                                        <i class="fas fa-heart"></i>
+                                                    </button>
+                                                </form>
+                                                
+                                                <form method="post" action="{% url 'signaler_annonce' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                                                    <button type="button" class="signal-btn" title="Signaler l'annonce" 
+                                                            data-bs-toggle="modal" data-bs-target="#myModal">
+                                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                                    </button>
+                                                </form>
+
+
+                                                <!-- Carousel pour les images -->
+                                                {% if annonce.images %}
+                                                <div id="annonceCarousel{{ annonce.id }}" class="carousel slide" data-bs-ride="carousel">
+                                                    <div class="carousel-inner">
+                                                        {% for image in annonce.images %}
+                                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                            <img src="{{ MEDIA_URL }}{{ image }}" class="d-block w-100" alt="Image annonce" style="height: 250px; object-fit: cover;">
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel{{ annonce.id }}" data-bs-slide="prev">
+                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Previous</span>
+                                                    </button>
+                                                    <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel{{ annonce.id }}" data-bs-slide="next">
+                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Next</span>
+                                                    </button>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                <div class="p-3">
+                                                    <h5>{{ annonce.titre }}</h5>
+                                                 
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-tag me-2"></i>
+                                                        <span class="price-tag">Prix: {{ annonce.prix }} €</span>
+                                                    </p>
+                                                    <p class="small text-truncate description">
+                                                        <i class="fas fa-info-circle me-2"></i>
+                                                        {{ annonce.description|truncatewords:15 }}
+                                                    </p>
+                                                    <p class="small text-muted">
+                                                        <i class="far fa-calendar-alt me-2"></i>
+                                                        {{ annonce.datePublication|date:"d/m/Y" }}
+                                                    </p>
+                                                    <p class="small text-truncate description">
+                                                        <i class="fas fa-user"></i>
+                                                        {{ annonce.user.nom }}
+                                                    </p>
+                                                    <a href="{% url 'detail_annonce' annonce.id %}" class="btn btn-custom">
+                                                        <i class="fas fa-eye me-2"></i>Voir détails
+                                                    </a> 
+                                                    {% comment %} <div class="d-flex justify-content-between align-items-center">
+                                                        <a href="{% url 'detail_annonce' annonce.id %}" class="btn btn-outline-primary btn-sm">
+                                                            <i></i>Détails
+                                                        </a>  {% endcomment %}
+                                                        
+                                                        <div class="btn-group">
+                                                    
+                                                        {% comment %} <form method="post" action="{% url 'ajouter_favoris' livre_id=livre.id %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                <i class="fas fa-heart"></i>
+                                                            </button>
+                                                        </form> {% endcomment %}
+                            
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Modal de signalement -->
+                                                    <div class="modal" id="myModal">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <!-- Modal Header -->
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Signaler cette annonce</h4>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+
+                                                                <!-- Modal body -->
+                                                                <div class="modal-body">
+                                                                    <form method="post" action="{% url 'signaler_annonce' %}">
+                                                                        {% csrf_token %}
+                                                                        <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                                                                        <div class="mb-3">
+                                                                            <label for="raison" class="form-label">Raison du signalement</label>
+                                                                            <textarea class="form-control" id="raison" name="raison" rows="3" required></textarea>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                                            <button type="submit" class="btn btn-danger">Signaler</button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>   
+                            
+                            
+                        {% endif %}
+
+                        {% empty %}
+                        <div class="col-12">
+                                <div class="alert alert-info">Aucune annonce disponible pour le moment.</div>
+                        </div>
+                    
+                {% endfor %}    
+                
+            </div>
+            <!-- Pagination -->
+<!-- Pagination -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if annonces.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Première">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ annonces.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Précédente">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+        
+        <li class="page-item disabled">
+            <span class="page-link">
+                Page {{ annonces.number }} sur {{ annonces.paginator.num_pages }}
+            </span>
+        </li>
+        
+        {% if annonces.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ annonces.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Suivante">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ annonces.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Dernière">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+        </div>
+    </div>
+</div>
+
+    
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--beige) 0%, var(--light-beige) 100%);
+        padding: 4rem 2rem;
+        border-radius: 20px;
+        box-shadow: var(--glass-shadow);
+    }
+
+            .announcement-card .signal-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            margin-right: 60px;
+        }
+
+        .announcement-card .signal-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.1);
+        }
+
+        .announcement-card .signal-btn i {
+            color: var(--burgundy);
+            font-size: 1.2rem;
+        }
+
+        .announcement-card .signal-btn.favorited i {
+            color: var(--orange);
+        }
+
+    .search-box .input-group {
+        background: var(--glass-bg);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .search-box .form-control {
+        border: none;
+        padding: 1rem;
+        background: transparent;
+    }
+
+    .search-box .btn {
+        padding: 1rem 2rem;
+        background: var(--burgundy);
+        border: none;
+    }
+
+    .search-box .btn:hover {
+        background: var(--orange);
+    }
+
+    .dashboard-card {
+        background: var(--light-beige);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .dashboard-card i {
+        color: var(--burgundy);
+    }
+
+    .category-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .category-icon {
+        font-size: 2.5rem;
+        color: var(--burgundy);
+        margin-bottom: 1rem;
+    }
+
+    .category-title {
+        color: var(--deep-purple);
+        margin-bottom: 0.5rem;
+    }
+
+    .category-count {
+        color: var(--burgundy);
+        font-size: 0.9rem;
+    }
+
+    .ad-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .ad-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .ad-card .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .ad-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .ad-card .price {
+        color: var(--orange);
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .btn-primary {
+        background: var(--burgundy);
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: var(--orange);
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-primary {
+        color: var(--burgundy);
+        border-color: var(--burgundy);
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--burgundy);
+        color: var(--white);
+        transform: translateY(-2px);
+    }
+
+    .pagination {
+    margin: 30px 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+    .page-item {
+        margin: 0 5px;
+    }
+
+    .page-link {
+        color: var(--deep-purple);
+        background-color: var(--light-beige);
+        border: 1px solid var(--glass-border);
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .page-link:hover {
+        background-color: var(--burgundy);
+        color: var(--beige);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--burgundy);
+        color: var(--beige);
+        border-color: var(--burgundy);
+    }
+
+    .page-item.disabled .page-link {
+        color: var(--burgundy-light);
+        background-color: var(--light-beige);
+        opacity: 0.6;
+    }
+
+    @media (max-width: 576px) {
+        .page-item {
+            margin: 2px;
+        }
+        .page-link {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+    }
+</style> 
+
+{% endblock %}

@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Tableau de bord</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   
+    
+    <style>
+
+        :root {
+            --deep-purple: #210F37;
+            --burgundy: #4F1C51;
+            --orange: #A55B4B;
+            --beige: #DCA06D;
+            --white: #FFFFFF;
+            --light-beige: #F5ECE0;
+            --deep-purple-light: #2d1a4a;
+            --burgundy-light: #6b2a6e;
+            --orange-light: #c06b5b;
+            --beige-light: #e4b78d;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --sidebar-width: 250px;
+            --header-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--deep-purple) 0%, var(--light-beige) 100%);
+            color: var(--deep-purple);
+            min-height: 100vh;
+           
+       
+        }
+
+        
+
+        /* Navigation Bar */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: rgba(33, 15, 55, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Ajoutez ce style dans votre section CSS */
+        .sidebar-toggle {
+            background: transparent;
+            border: none;
+            color: var(--beige);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: block; 
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            color: var(--orange);
+            transform: scale(1.1);
+            display: block;
+        }
+
+        @media screen and (max-width: 1024px) {
+            .sidebar-toggle {
+                display: block; /* Visible sur mobile/tablette */
+            }
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-brand {
+            color: var(--beige);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-brand:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-brand i {
+            color: var(--orange);
+            font-size: 1.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-brand:hover i {
+            transform: rotate(15deg);
+        }
+
+        .nav-brand span {
+            font-size: 1.3rem;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-profile {
+            position: relative;
+        }
+
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: var(--beige);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .profile-name {
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-btn i {
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-btn:hover i {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: rgba(245, 236, 224, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 250px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-profile:hover .profile-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-info h3 {
+            color: var(--deep-purple);
+            margin: 0.5rem 0 0.2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .profile-info p {
+            color: var(--burgundy);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .profile-menu {
+            padding: 1rem 0;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            color: var(--deep-purple);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .profile-menu-item:hover {
+            background: rgba(165, 91, 75, 0.1);
+            color: var(--burgundy);
+        }
+
+        .profile-menu-item i {
+            width: 20px;
+            text-align: center;
+            color: var(--orange);
+            font-size: 1.1rem;
+        }
+
+        .profile-menu-item:hover i {
+            transform: scale(1.2);
+        }
+
+        .profile-menu-item span {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        @media screen and (max-width: 768px) {
+            .nav-bar {
+                padding: 0 1rem;
+            }
+
+            .nav-brand span {
+                font-size: 1.1rem;
+            }
+
+            .profile-btn {
+                padding: 0.5rem 1rem;
+            }
+
+            .profile-name {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: var(--header-height);
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: rgba(33, 15, 55, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            overflow-y: auto;
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 900;
+            animation: slideIn 0.5s ease;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            padding-right: 300px;
+
+            
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .menu-section {
+            position: relative;
+            margin-bottom: 2rem;
+            padding: 1.2rem;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            padding-right: 15rem;
+        }
+
+        .menu-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .menu-title {
+            color: var(--beige);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+            padding-left: 1rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .menu-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--orange);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-section:hover .menu-title::before {
+            height: 24px;
+            background: linear-gradient(180deg, var(--orange) 0%, var(--burgundy) 100%);
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 9rem 0 0;
+            color: var(--beige);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.8rem;
+            padding-bottom: 1rem;
+            padding-left: 2rem;
+          
+        }
+
+        .menu-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--orange);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-link:hover::before, .menu-link.active::before {
+            transform: scaleY(1);
+        }
+
+        .menu-link:hover, .menu-link.active {
+            background: var(--burgundy);
+            color: var(--beige);
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-link i {
+            width: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            color: var(--orange);
+            font-size: 1.2rem;
+        }
+
+        .menu-link:hover i, .menu-link.active i {
+            transform: scale(1.2) rotate(10deg);
+            color: var(--beige);
+        }
+
+        .menu-link span {
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        /* Scrollbar personnalisée */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--orange);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--burgundy);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Main Content */
+        .main-content {
+            {% comment %} margin-left: var(--sidebar-width); {% endcomment %}
+            margin-top: var(--header-height);
+            padding: 2rem;
+            
+        }
+
+        .admin-dashboard {
+            padding: 2rem;
+            min-height: calc(100vh - var(--header-height));
+           
+     
+        }
+
+        .dashboard-header {
+            background: rgba(245, 236, 224, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 2rem;
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-content h1 {
+            color: var(--deep-purple);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(245, 236, 224, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--burgundy) 0%, var(--orange) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .stat-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--burgundy);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover i {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .stat-info {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-info h3 {
+            font-size: 1.5rem;
+            color: var(--deep-purple);
+            margin: 0;
+        }
+
+        .stat-info p {
+            color: var(--burgundy);
+            margin: 0;
+        }
+
+        .dashboard-section {
+            background: rgba(245, 236, 224, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 2rem;
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            color: var(--deep-purple);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-filter, .btn-refresh {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--deep-purple);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-filter:hover, .btn-refresh:hover {
+            background: var(--burgundy);
+            color: var(--beige);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .announcements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            
+        }
+
+        .announcement-card {
+            background: rgba(245, 236, 224, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .announcement-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--burgundy) 0%, var(--orange) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .announcement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .announcement-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--burgundy);
+        }
+
+        .status.pending {
+            background: rgba(165, 91, 75, 0.1);
+            color: var(--orange);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .description {
+            color: var(--deep-purple);
+            margin-bottom: 1rem;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 1rem;
+            color: var(--burgundy);
+            font-size: 0.875rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-preview, .btn-approve, .btn-reject {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--glass-bg);
+        }
+
+        .btn-preview {
+            color: var(--deep-purple);
+        }
+
+        .btn-approve {
+            color: var(--burgundy);
+        }
+
+        .btn-reject {
+            color: var(--orange);
+        }
+
+        .btn-preview:hover, .btn-approve:hover, .btn-reject:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-preview:hover {
+            background: var(--deep-purple);
+            color: var(--beige);
+        }
+
+        .btn-approve:hover {
+            background: var(--burgundy);
+            color: var(--beige);
+        }
+
+        .btn-reject:hover {
+            background: var(--orange);
+            color: var(--beige);
+        }
+
+        .verification-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--deep-purple);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--burgundy);
+            color: var(--beige);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--deep-purple);
+            color: var(--beige);
+            transform: translateY(-3px);
+        }
+
+        .admin-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-card {
+            background: rgba(245, 236, 224, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--burgundy) 0%, var(--orange) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .control-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .control-card i {
+            font-size: 2rem;
+            color: var(--burgundy);
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .control-card:hover i {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .control-card h3 {
+            color: var(--deep-purple);
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .control-card p {
+            color: var(--burgundy);
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-control {
+            padding: 0.5rem 1.5rem;
+            background: var(--burgundy);
+            color: var(--beige);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-control:hover {
+            background: var(--orange);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--burgundy);
+            position: relative;
+            z-index: 1;
+        }
+
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--orange);
+            transition: transform 0.3s ease;
+        }
+
+        .no-data:hover i {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                {% comment %} transition: transform 0.3s ease; {% endcomment %}
+                width: 280px; /* Un peu plus large pour mobile */
+                opacity: 1; 
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2); 
+                
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .admin-dashboard {
+                padding: 1rem;
+            }
+        }
+
+        /* Carrousel stylisé */
+        .carousel-item img {
+            max-height: 600px;
+            object-fit: contain;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .carousel-item:hover img {
+            transform: scale(1.02);
+        }
+
+        /* Contrôles du carrousel */
+        .carousel-control-prev,
+        .carousel-control-next {
+            background-color: var(--glass-bg);
+            width: 60px;
+            height: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            border: 1px solid var(--glass-border);
+        }
+
+        .carousel-control-prev:hover,
+        .carousel-control-next:hover {
+            background-color: var(--burgundy);
+        }
+
+        /* Styles pour les cartes d'information */
+        .info-card {
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Styles pour l'avatar du vendeur */
+        .avatar-wrapper {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--beige-light);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-wrapper:hover {
+            transform: scale(1.1);
+            background-color: var(--beige);
+        }
+
+        /* Styles pour la pagination */
+        .pagination {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page-item {
+            margin: 0 0.25rem;
+        }
+
+        .page-link {
+            color: var(--deep-purple);
+            background-color: var(--light-beige);
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover {
+            background-color: var(--burgundy);
+            color: var(--beige);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--burgundy);
+            color: var(--beige);
+            border-color: var(--burgundy);
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: var(--light-beige);
+            border-color: var(--glass-border);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-left">
+             <!-- Bouton hamburger pour la sidebar -->
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{% url 'home_admin' %}" class="nav-brand">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin Panel</span>
+            </a>
+            <a href="{% url 'home_admin' %}" class="profile-menu-item">
+                <i class="fas fa-home"></i>
+                <span>Acceuil</span>
+            </a>
+        </div>
+        <div class="nav-actions">
+            <div class="nav-profile">
+                <button class="nav-btn profile-btn" title="Profil">
+                    <span class="profile-name">{{request.user.nom}}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="profile-dropdown">
+                    <div class="profile-header">
+                        <div class="profile-info">
+                            <h3>Admin</h3>
+                            <p>Administrateur</p>
+                        </div>
+                    </div>
+                    <div class="profile-menu">
+                        <a href="{% url 'Profil_Admin' Admin_id=request.user.id %}" class="profile-menu-item">
+                            <i class="fas fa-user"></i>
+                            <span>Mon profil</span>
+                        </a>
+                        <a href="{% url 'logout' %}" class="profile-menu-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Déconnexion</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="menu-section">
+            <h3 class="menu-title">Principal</h3>
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="{% url 'home_admin' %}" class="menu-link ">
+                        <i class="fas fa-home"></i>
+                        Tableau de bord 
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'Annonces' %}" class="menu-link">
+                        <i class="fas fa-bullhorn"></i>
+                        Annonces
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'Utilisateurs' %}" class="menu-link">
+                        <i class="fas fa-users"></i>
+                        Utilisateurs 
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="menu-section">
+            <h3 class="menu-title">Gestion</h3>
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="{% url 'validation_annonces' %}" class="menu-link">
+                        <i class="fas fa-check-circle"></i>
+                        Vérification
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'Annonces_signalees' %}" class="menu-link">
+                        <i class="fas fa-flag"></i>
+                        Signalements
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'statistiques' %}" class="menu-link">
+                        <i class="fas fa-chart-bar"></i>
+                        Statistiques
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="menu-section">
+            <h3 class="menu-title">Configuration</h3>
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="{% url 'Profil_Admin' Admin_id=request.user.id %}"class="menu-link">
+                        <i class="fas fa-user"></i>
+                        Profil
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-shield-alt"></i>
+                        Modifier mot de passe
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'logout' %}"class="menu-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    {% block content %}
+    <main class="main-content">
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    
+        <!-- Your existing dashboard content here -->
+        <div class="admin-dashboard">
+            <!-- Header Section -->
+            <div class="dashboard-header">
+                <div class="header-content">
+                    <h1><i class="fas fa-user-shield"></i> Tableau de bord administrateur</h1>
+                    <div class="admin-stats">
+                        <div class="stat-card">
+                            <i class="fas fa-clock"></i>
+                            <div class="stat-info">
+                                <h3>{{ annonce_non_validee }}</h3>
+                                <p>Annonces en attente</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="stat-info">
+                                <h3>{{ annonce_validee }}</h3>
+                                <p>Annonces vérifiées</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-info">
+                                <h3> {{user_count}} </h3>
+                                <p>Utilisateurs</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="dashboard-content">
+                <!-- Pending Announcements Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-clock"></i> Demandes d'annonces en attente</h2>
+                    </div>
+                    
+                    <div class="announcements-grid">
+                        {% for annonce in Annonces_en_attentes  %}
+                            <div class="announcement-card">
+                                <div class="card-header">
+                                    <h3>{{ annonce.titre }}</h3>
+                                    <span class="status pending">En attente</span>
+                                </div>
+                                <div class="card-content">
+                                    
+                            {% comment %} {% if annonce.images %}
+                            <div id="annonceCarousel{{ annonce.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
+                                <div class="carousel-inner rounded-4 overflow-hidden">
+                                    {% for image in annonce.images %}
+                                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                        <img src="{{ MEDIA_URL }}{{ image }}" class="d-block w-100" alt="Image annonce" style="height: 250px; object-fit: cover;">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel{{ annonce.id }}" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Précédent</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel{{ annonce.id }}" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Suivant</span>
+                                </button>
+                            </div>
+                            {% else %}
+                            <div class="bg-light rounded-4 d-flex align-items-center justify-content-center" style="height: 250px; background-color: var(--light-beige);">
+                                <i class="fas fa-image fa-4x" style="color: var(--orange);"></i>
+                            </div>
+                            {% endif %} {% endcomment %}
+
+                             <!-- Carousel pour les images -->
+                                                {% if annonce.images %}
+                                                <div id="annonceCarousel{{ annonce.id }}" class="carousel slide" data-bs-ride="carousel">
+                                                    <div class="carousel-inner">
+                                                        {% for image in annonce.images %}
+                                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                            <img src="{{ MEDIA_URL }}{{ image }}" class="d-block w-100" alt="Image annonce" style="height: 250px; object-fit: cover;">
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel{{ annonce.id }}" data-bs-slide="prev">
+                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Previous</span>
+                                                    </button>
+                                                    <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel{{ annonce.id }}" data-bs-slide="next">
+                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Next</span>
+                                                    </button>
+                                                </div>
+                                                {% endif %}
+
+
+                                    <p class="description">{{ annonce.description|truncatechars:100 }}</p>
+                                    <div class="meta-info">
+                                        <span><i class="fas fa-user"></i> {{ annonce.user.nom}}</span>
+                                        <span><i class="fas fa-calendar"></i> {{ annonce.datePublication }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="card-actions">
+                                    
+                                    <a href="{% url 'preview_annonce' annonce.id %}" class="btn-preview">
+                                        <i class="fas fa-eye"></i> Prévisualiser
+                                    </a>
+                                    
+                                    
+                                    <form method="post" action="{% url 'approve_annonce' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                                        <button type="submit" class="btn-approve">
+                                            <i class="fas fa-check"></i> Approuver
+                                        </button>
+                                    </form>
+                                    
+                                    
+                                    <form method="post" action="{% url 'reject_annonce' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                                        <div style="display: inline-block;">
+                                            <button type="button" onclick="showRejectReason(this)" class="btn-reject">
+                                                <i class="fas fa-times"></i> Rejeter
+                                            </button>
+                                            <input type="text" name="rejection_reason" id="reject-reason-{{ annonce.id }}" 
+                                                style="display: none;" placeholder="Raison du rejet" required>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            </div>
+                           {% empty %}
+                            <div class="no-data">
+                                <i class="fas fa-inbox"></i>
+                                <p>Aucune demande d'annonce en attente</p>
+                            </div> 
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Admin Controls Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-cogs"></i> Contrôles administrateur</h2>
+                    </div>
+                    <div class="admin-controls">
+                        <div class="control-card">
+                            <i class="fas fa-user-cog"></i>
+                            <h3>Gestion des utilisateurs</h3>
+                            <p>Gérer les comptes et les permissions</p>
+                            <a href="{% url 'Utilisateurs' %}" class="btn-control">
+                                Accéder
+                            </a>
+                        </div>
+                        <div class="control-card">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>Statistiques</h3>
+                            <p>Voir les statistiques du site</p>
+                            <a href="{% url 'statistiques' %}" class="btn-control">
+                                Accéder
+                            </a>
+                        </div>
+                        <div class="control-card">
+                            <i class="fas fa-bell"></i>
+                            <h3>Notifications</h3>
+                            <p>Gérer les notifications système</p>
+                            <button class="btn-control">Accéder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+     <!-- Pagination -->
+   <!-- Pagination -->
+{% if Annonces_en_attentes.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if Annonces_en_attentes.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ Annonces_en_attentes.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;&laquo;</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+        {% endif %}
+
+        {% for num in Annonces_en_attentes.paginator.page_range %}
+            {% if Annonces_en_attentes.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > Annonces_en_attentes.number|add:'-3' and num < Annonces_en_attentes.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if Annonces_en_attentes.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ Annonces_en_attentes.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ Annonces_en_attentes.paginator.num_pages }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;&raquo;</span>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+    {% endblock content %}
+
+
+    {% comment %} <script>
+    function showRejectReason(btn) {
+        const form = btn.closest('form');
+        const input = form.querySelector('input[name="rejection_reason"]');
+        input.style.display = 'inline-block';
+        btn.style.display = 'none';
+        input.focus();
+    } 
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        // Toggle sidebar
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+        
+        // Fermer la sidebar si on clique en dehors
+        document.addEventListener('click', function(event) {
+            if (!sidebar.contains(event.target) && 
+                !sidebarToggle.contains(event.target) && 
+                window.innerWidth <= 1024) {
+                sidebar.classList.remove('active');
+            }
+        });
+    });
+    </script> {% endcomment %}
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function showRejectReason(btn) {
+        const form = btn.closest('form');
+        const input = form.querySelector('input[name="rejection_reason"]');
+        input.style.display = 'inline-block';
+        btn.style.display = 'none';
+        input.focus();
+    } 
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        // Toggle sidebar
+        sidebarToggle.addEventListener('click', function(e) {
+            e.stopPropagation(); // Empêche la propagation du clic
+            sidebar.classList.toggle('active');
+        });
+        
+        // Fermer la sidebar si on clique en dehors
+        document.addEventListener('click', function(event) {
+            const isClickInsideSidebar = sidebar.contains(event.target);
+            const isClickOnToggle = sidebarToggle.contains(event.target);
+            
+            if (!isClickInsideSidebar && !isClickOnToggle && window.innerWidth <= 1024) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Empêche la fermeture quand on clique dans la sidebar
+        sidebar.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+</script>
+
+</body>
+</html>

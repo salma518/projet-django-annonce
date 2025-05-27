@@ -1,0 +1,434 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+ <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+   
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+
+<div class="validation-container">
+    <!-- Header -->
+    <div class="validation-header">
+        <h1><i class="fas fa-clock"></i> Annonces en attente de validation</h1>
+        <p class="last-update">Nombre d'annonces en attente: {{ annonces_en_attente|length }}</p>
+    </div>
+
+    <!-- Annonces en attente -->
+   <!-- Pending Announcements Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-clock"></i> Demandes d'annonces en attente</h2>
+                    </div>
+                    
+                    <div class="announcements-grid">
+                        {% for annonce in annonces_en_attente  %}
+                        <div class="announcement-card">
+                            <div class="card-header">
+                                <h3>{{ annonce.titre }}</h3>
+                                <span class="status pending">En attente</span>
+                                
+                            </div>
+                            <div class="card-content">
+                               {% if annonce.images %}
+                                <div id="annonceCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+                                    <div class="carousel-inner rounded-4 overflow-hidden">
+                                        {% for image in annonce.images %}
+                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                            <img src="{{ MEDIA_URL }}{{ image }}" class="img-fluid rounded-4" alt="Image annonce" >
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                </div>
+                                {% else %}
+                                <div class="bg-light rounded-4 d-flex align-items-center justify-content-center" style="height: 600px; background-color: var(--light-beige);">
+                                    <i class="fas fa-image fa-4x" style="color: var(--orange);"></i>
+                                </div>
+                                {% endif %}
+
+
+                                <p class="description">{{ annonce.description|truncatechars:100 }}</p>
+                                <div class="meta-info">
+                                    <span><i class="fas fa-user"></i> {{ annonce.user.nom}}</span>
+                                    <span><i class="fas fa-calendar"></i> {{ annonce.datePublication }}</span>
+                                </div>
+                            </div>
+
+                            <div class="card-actions">
+                                
+                                <a href="{% url 'preview_annonce' annonce.id %}" class="btn-preview">
+                                    <i class="fas fa-eye"></i> Prévisualiser
+                                </a>
+                                
+                                
+                                <form method="post" action="{% url 'approve_annonce' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                                    <button type="submit" class="btn-approve">
+                                        <i class="fas fa-check"></i> Approuver
+                                    </button>
+                                </form>
+                                
+                                
+                                <form method="post" action="{% url 'reject_annonce' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                                    <div style="display: inline-block;">
+                                        <button type="button" onclick="showRejectReason(this)" class="btn-reject">
+                                            <i class="fas fa-times"></i> Rejeter
+                                        </button>
+                                        <input type="text" name="rejection_reason" id="reject-reason-{{ annonce.id }}" 
+                                            style="display: none;" placeholder="Raison du rejet" required>
+                                    </div>
+                                </form>
+                            </div>
+
+                            </div>
+                            {% empty %}
+                            <div class="no-data">
+                                <i class="fas fa-inbox"></i>
+                                <p>Aucune demande d'annonce en attente</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+        <!-- Pagination - Placée en dehors de announcements-grid -->
+                {% if annonces_en_attente.paginator.num_pages >= 1 %}
+                            <div class="pagination-section">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination justify-content-center">
+                                        {% if annonces_en_attente.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ annonces_en_attente.previous_page_number }}">
+                                                    <i class="fas fa-chevron-left"></i> Précédent
+                                                </a>
+                                            </li>
+                                        {% endif %}
+
+                                {% for num in annonces_en_attente.paginator.page_range %}
+                                    {% if annonces_en_attente.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > annonces_en_attente.number|add:'-3' and num < annonces_en_attente.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if annonces_en_attente.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ annonces_en_attente.next_page_number }}">
+                                            Suivant <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+
+<style>
+
+    .pagination-section {
+        margin: 2rem 0;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .page-item {
+        margin: 0.2rem;
+    }
+
+    .page-link {
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        color: var(--deep-purple);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        background-color: var(--white);
+        border: 1px solid var(--beige-light);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--burgundy);
+        color: var(--white);
+        border-color: var(--burgundy);
+    }
+
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    .page-link:hover:not(.active) {
+        background-color: var(--beige-light);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .pagination {
+            gap: 0.3rem;
+        }
+        
+        .page-item .page-link {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+    }
+    .validation-container {
+        padding: 2rem;
+        min-height: 100vh;
+        {% comment %} margin-left: 14rem; {% endcomment %}
+    }
+
+    .validation-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        margin-top: 4rem;
+        background: var(--light-beige);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .validation-header h1 {
+        color: var(--deep-purple);
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .last-update {
+        color: #7f8c8d;
+        font-size: 2rem;
+    }
+
+    .annonces-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        padding: 1rem;
+    }
+
+    .annonce-card {
+        background: var(--glass-bg);
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--orange);
+        transition: transform 0.3s ease;
+    }
+
+    .annonce-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .card-header h3 {
+        color: var(--deep-purple);
+        font-size: 1.2rem;
+        margin: 0;
+    }
+
+    .status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status.pending {
+        background: var(--orange);
+        color: white;
+    }
+
+    .card-image {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .card-content {
+        margin-bottom: 1.5rem;
+    }
+
+    .description {
+        color: var(--burgundy);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .meta-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+        font-size: 0.9rem;
+        color: var(--deep-purple);
+    }
+
+    .meta-info span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-preview, .btn-approve, .btn-reject {
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-preview {
+        background: var(--deep-purple);
+        color: var(--beige);
+    }
+
+    .btn-approve {
+        background: var(--burgundy);
+        color: var(--beige);
+    }
+
+    .btn-reject {
+        background: var(--orange);
+        color: var(--beige);
+    }
+
+    .btn-preview:hover, .btn-approve:hover, .btn-reject:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .reject-container {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .reject-reason {
+        padding: 0.8rem 1.2rem;
+        border-radius: 25px;
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg);
+        color: var(--deep-purple);
+        width: 200px;
+    }
+
+    .no-data {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem;
+        background: var(--glass-bg);
+        border-radius: 10px;
+        color: var(--deep-purple);
+    }
+
+    .no-data i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--orange);
+    }
+
+    @media (max-width: 768px) {
+        .validation-container {
+            padding: 1rem;
+        }
+
+        .annonces-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .card-actions {
+            flex-direction: column;
+        }
+
+        .reject-container {
+            flex-direction: column;
+        }
+
+        .reject-reason {
+            width: 100%;
+        }
+
+        .meta-info {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+function showRejectReason(btn) {
+    const container = btn.closest('.reject-container');
+    const input = container.querySelector('.reject-reason');
+    input.style.display = 'inline-block';
+    btn.style.display = 'none';
+    input.focus();
+}
+
+</script>
+{% endblock %}

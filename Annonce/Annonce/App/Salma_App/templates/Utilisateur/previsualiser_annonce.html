@@ -1,0 +1,315 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+<main class="main-content">
+    <div class="admin-dashboard">
+        <!-- Header Section -->
+        <div class="dashboard-header">
+            <div class="header-content">
+                <h1><i class="fas fa-eye"></i> Prévisualisation de l'annonce</h1>
+            </div>
+        </div>
+
+        <!-- Preview Content -->
+        <div class="dashboard-section">
+            <div class="preview-container">
+                <!-- Annonce Title -->
+                <div class="preview-header">
+                    <h2>{{ annonce.titre }}</h2>
+                    <span class="status pending">En attente de validation</span>
+                </div>
+
+                <!-- Images Carousel -->
+                {% if annonce.images %}
+                <div id="annonceCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+                    <div class="carousel-inner rounded-4 overflow-hidden">
+                        {% for image in annonce.images %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <img src="{{ MEDIA_URL }}{{ image }}" class="img-fluid rounded-4" alt="Image annonce" style="height: 400px; width: 100%; object-fit: cover;">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                {% else %}
+                <div class="bg-light rounded-4 d-flex align-items-center justify-content-center mb-4" style="height: 400px; background-color: var(--light-beige);">
+                    <i class="fas fa-image fa-4x" style="color: var(--orange);"></i>
+                </div>
+                {% endif %}
+
+                <!-- Annonce Details -->
+                <div class="preview-details">
+                    <div class="detail-section">
+                        <h3><i class="fas fa-info-circle"></i> Description</h3>
+                        <p>{{ annonce.description }}</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i class="fas fa-tag"></i> Catégorie</h3>
+                        <p>{{ annonce.categorie }}</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Localisation</h3>
+                        <p>{{ annonce.localisation }}</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i class="fas fa-money-bill-wave"></i> Prix</h3>
+                        <p>{{ annonce.prix }} €</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i class="fas fa-user"></i> Informations vendeur</h3>
+                        <div class="seller-info">
+                            <div class="avatar-wrapper">
+                                <i class="fas fa-user-circle fa-3x"></i>
+                            </div>
+                            <div class="seller-details">
+                                <p><strong>Nom:</strong> {{ annonce.user.nom }}</p>
+                                <p><strong>Email:</strong> {{ annonce.user.email }}</p>
+                                <p><strong>Téléphone:</strong> {{ annonce.user.telephone }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i class="fas fa-clock"></i> Date de publication</h3>
+                        <p>{{ annonce.datePublication }}</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="preview-actions">
+                    <form method="post" action="{% url 'approve_annonce' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                        <button type="submit" class="btn-approve">
+                            <i class="fas fa-check"></i> Approuver l'annonce
+                        </button>
+                    </form>
+
+                    <form method="post" action="{% url 'reject_annonce' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="annonce_id" value="{{ annonce.id }}">
+                        <div class="reject-container">
+                            <button type="button" onclick="showRejectReason(this)" class="btn-reject">
+                                <i class="fas fa-times"></i> Rejeter l'annonce
+                            </button>
+                            <input type="text" name="rejection_reason" id="reject-reason" 
+                                style="display: none;" placeholder="Raison du rejet" required>
+                        </div>
+                    </form>
+
+                    <a href="{% url 'home_admin' %}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .preview-container {
+        padding: 2rem;
+    }
+
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .preview-header h2 {
+        color: var(--deep-purple);
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .preview-details {
+        background: rgba(245, 236, 224, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--glass-border);
+    }
+
+    .detail-section {
+        margin-bottom: 2rem;
+    }
+
+    .detail-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-section h3 {
+        color: var(--deep-purple);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-section h3 i {
+        color: var(--burgundy);
+    }
+
+    .detail-section p {
+        color: var(--burgundy);
+        line-height: 1.6;
+    }
+
+    .seller-info {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--glass-border);
+    }
+
+    .seller-details p {
+        margin: 0.5rem 0;
+    }
+
+    .preview-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn-approve, .btn-reject, .btn-back {
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-approve {
+        background: var(--burgundy);
+        color: var(--beige);
+    }
+
+    .btn-reject {
+        background: var(--orange);
+        color: var(--beige);
+    }
+
+    .btn-back {
+        background: var(--deep-purple);
+        color: var(--beige);
+        text-decoration: none;
+    }
+
+    .btn-approve:hover, .btn-reject:hover, .btn-back:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .reject-container {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    #reject-reason {
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg);
+        color: var(--deep-purple);
+        width: 300px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .preview-actions {
+            flex-direction: column;
+        }
+
+        .seller-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .reject-container {
+            flex-direction: column;
+        }
+
+        #reject-reason {
+            width: 100%;
+        }
+    }
+
+    /* Styles pour le carrousel */
+    .carousel {
+        margin-bottom: 2rem;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .carousel-inner {
+        height: 400px;
+    }
+
+    .carousel-item {
+        height: 400px;
+    }
+
+    .carousel-item img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .carousel-item:hover img {
+        transform: scale(1.02);
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 50px;
+        height: 50px;
+        background-color: rgba(33, 15, 55, 0.7);
+        border-radius: 50%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin: 0 1rem;
+    }
+
+    .carousel-control-prev:hover,
+    .carousel-control-next:hover {
+        background-color: var(--burgundy);
+    }
+</style>
+
+<script>
+function showRejectReason(btn) {
+    const container = btn.closest('.reject-container');
+    const input = container.querySelector('input[name="rejection_reason"]');
+    input.style.display = 'inline-block';
+    btn.style.display = 'none';
+    input.focus();
+}
+</script>
+{% endblock %} 

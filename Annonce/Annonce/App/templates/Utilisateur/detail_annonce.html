@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% block sidebar %}{% endblock sidebar %}
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-danger">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+{% if form.errors %}
+<p style="color: red;">Identifiants invalides. Veuillez réessayer.</p>
+{% endif %}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Colonne des images -->
+        <div class="col-md-5 ">
+            <div class="card shadow-lg rounded-4" style="background-color: var(--light-beige);">
+                <div class="card-body text-center">
+                    {% if annonce.images %}
+                    <div id="annonceCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4 overflow-hidden">
+                            {% for image in annonce.images %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ MEDIA_URL }}{{ image }}" class="img-fluid rounded-4" alt="Image annonce" style="max-height: 600px; object-fit: contain;">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="bg-light rounded-4 d-flex align-items-center justify-content-center" style="height: 600px; background-color: var(--light-beige);">
+                        <i class="fas fa-image fa-4x" style="color: var(--orange);"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Boutons d'action -->
+                    <div class="d-grid gap-3 mt-4">
+                        {% if user.is_authenticated %}
+                            {% if user.id != annonce.user_id %}
+                                <a href="{% url 'messageToUser' annonce.user_id %}" class="btn btn-lg rounded-pill" style="background-color: var(--burgundy); color: var(--white);">
+                                    <i class="fas fa-envelope me-2"></i>Contacter le vendeur
+                                </a>
+                            {% endif %}
+                        {% endif %}
+
+                        <a href="{% url 'home_user' %}" class="btn btn-lg rounded-pill" style="background-color: var(--orange); color: var(--white);">
+                            <i class="fas fa-arrow-left me-2"></i>Retour aux annonces
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card shadow-lg rounded-4" style="background-color: var(--light-beige);">
+                <div class="card-body p-4">
+                    <h1 class="card-title mb-4 fw-bold" style="color: var(--deep-purple);">{{ annonce.titre }}</h1>
+                    <p class="text-muted mb-4" style="color: var(--burgundy);">
+                        <i class="fas fa-user me-2"></i>Publié par {{ annonce.user.nom }} {{ annonce.user.prenom }} 
+                    </p>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="info-card p-3 rounded-4" style="background-color: var(--white);">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-wrapper rounded-circle me-3" style="background-color: var(--beige-light);">
+                                        <i class="fas fa-tag" style="color: var(--orange);"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold" style="color: var(--deep-purple);">Prix</h6>
+                                        <p class="mb-0 fs-5 fw-bold" style="color: var(--burgundy);">{{ annonce.prix }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="info-card p-3 rounded-4" style="background-color: var(--white);">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-wrapper rounded-circle me-3" style="background-color: var(--beige-light);">
+                                        <i class="fas fa-calendar" style="color: var(--orange);"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold" style="color: var(--deep-purple);">Date de publication</h6>
+                                        <p class="mb-0" style="color: var(--burgundy);">{{ annonce.datePublication|date:"d/m/Y" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="info-card p-3 rounded-4" style="background-color: var(--white);">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-wrapper rounded-circle me-3" style="background-color: var(--beige-light);">
+                                        <i class="fas fa-star" style="color: var(--orange);"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold" style="color: var(--deep-purple);">Statut</h6>
+                                        <p class="mb-0">
+                                            {% if annonce.isPremieum %}
+                                            <span class="badge p-2" style="background-color: var(--burgundy); color: var(--white);">Premium</span>
+                                            {% else %}
+                                            <span class="badge p-2" style="background-color: var(--orange); color: var(--white);">Standard</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="info-card p-3 rounded-4" style="background-color: var(--white);">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-wrapper rounded-circle me-3" style="background-color: var(--beige-light);">
+                                        <i class="fas fa-check-circle" style="color: var(--orange);"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold" style="color: var(--deep-purple);">Categorie</h6>
+                                        <p class="mb-0" style="color: var(--burgundy);">{{ annonce.categorie.nom|capfirst }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="mb-3 fw-bold" style="color: var(--deep-purple);">Description</h4>
+                        <div class="card rounded-4" style="background-color: var(--white);">
+                            <div class="card-body p-4">
+                                <p class="mb-0 lh-lg" style="color: var(--burgundy);">{{ annonce.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section vendeur -->
+                    <div class="mt-4">
+                        <h4 class="mb-3 fw-bold" style="color: var(--deep-purple);">À propos du vendeur</h4>
+                        <div class="card rounded-4" style="background-color: var(--white);">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-4">
+                                        <div class="avatar-wrapper">
+                                            <i class="fas fa-user-circle fa-4x" style="color: var(--orange);"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-2 fw-bold" style="color: var(--deep-purple);">{{ annonce.user.username }}</h5>
+                                        <p class="mb-2" style="color: var(--burgundy);">Membre depuis {{ annonce.user.date_joined|date:"Y" }}</p>
+                                        <div class="d-flex gap-2">
+                                            <span class="badge p-2" style="background-color: var(--burgundy); color: var(--white);">
+                                                <i class="fas fa-star text-white me-1"></i>4.8
+                                            </span>
+                                            <span class="badge p-2" style="background-color: var(--burgundy); color: var(--white);">
+                                                <i class="fas fa-bullhorn text-white me-1"></i>{{user_ads_count}} annonces
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 mt-5">
+            <div class="card shadow-lg rounded-4" style="background-color: var(--light-beige);">
+                <div class="card-body p-4">
+                    <h1 class="card-title mb-4 fw-bold" style="color: var(--deep-purple);">Commentaires</h1>
+                    <div class="row g-4 mb-4">
+                        {% for question in questions %}
+                            <div class="col-md-12">
+                                <div class="info-card p-3 rounded-4" style="background-color: var(--white);">
+                                    <div style="display: flex;align-items: center;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="icon-wrapper ounded-circle me-3" style="background-color: var(--beige-light);">
+                                                {% if question.user.image == "https://static.vecteezy.com/system/resources/previews/008/442/086/non_2x/illustration-of-human-icon-user-symbol-icon-modern-design-on-blank-background-free-vector.jpg" %}
+                                                    <img src="{{ question.user.image }}" alt="User Image" style="width: 100%;border-radius: 100%;" class="rounded-circle">
+                                                {% else %}
+                                                    <img src="{{ question.user.image}}" style="width: 100%;border-radius: 100%;" class="rounded-circle">
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if question.user.nom == user.nom and question.user.prenom == user.prenom %}
+                                            <h5 class="text-muted mb-4" style="color: var(--burgundy);">
+                                                Moi
+                                            </h5>
+                                        {% else %}
+                                            <h5 class="text-muted mb-4" style="color: var(--burgundy);">
+                                                {{question.user.nom|upper}} {{question.user.prenom}}
+                                            </h5>
+                                        {% endif %}
+                                    </div>
+                                    <p class="mt-3">{{question.contenu}}</p>
+                                    <div style="display: flex;justify-content: end;margin-bottom: 15px;">
+                                            {% if question_actif and question.id == question_actif.id %}
+                                                <div class="info-card p-3 pb-5 rounded-4 mt-3" style="background-color: var(--white);margin-bottom: 63px;">
+                                                    <form action="{% url 'reponseqst' question.id annonce.id %}" method="post">
+                                                        {% csrf_token %}
+                                                        <textarea name="contenu" id="" cols="150" rows="3" class="form-control mb-2" placeholder="Votre commentaire ....."></textarea>
+                                                        <button type="submit" class="btn btn-primary mt-1" style="float: right;">Repondre</button>
+                                                    </form>
+                                                </div>
+                                            {% else %}
+                                                <div>
+                                                    <a href="{% url 'reponseqst' question.id annonce.id %}" style="margin-right: 13px;">Repondre</a>
+                                                    <a href="{% url 'reponsesqst' question.id annonce.id %}" >Voir toutes les reponses</a>
+                                                </div>
+                                            {% endif %}
+                                            
+                                    </div>
+                                    {% comment %} {% if reponses_actif %} {% endcomment %}
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                    {% for reponse in reponses_actif %}
+                                                        {% if reponse.question_id == question.id %}
+                                                            <div class="info-card p-3 rounded-4" style="background-color: var(--white);">
+                                                                <div style="display: flex;align-items: center;">
+                                                                    <div class="d-flex align-items-center">
+                                                                        
+                                                                        <div class="icon-wrapper ounded-circle me-3" style="background-color: var(--beige-light);">
+                                                                            {% if reponse.user.image == "https://static.vecteezy.com/system/resources/previews/008/442/086/non_2x/illustration-of-human-icon-user-symbol-icon-modern-design-on-blank-background-free-vector.jpg" %}
+                                                                                <img src="{{ reponse.user.image }}" alt="User Image" style="width: 100%;border-radius: 100%;" class="rounded-circle">
+                                                                            {% else %}
+                                                                                <img src="{{ reponse.user.image.url }}" style="width: 100%;border-radius: 100%;" class="rounded-circle">
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                    {% if reponse.user.nom == user.nom and reponse.user.prenom == user.prenom %}
+                                                                        <h5 class="text-muted mb-4" style="color: var(--burgundy);">
+                                                                            Moi
+                                                                        </h5>
+                                                                    {% else %}
+                                                                        <h5 class="text-muted mb-4" style="color: var(--burgundy);">
+                                                                            {{reponse.user.nom|upper}} {{reponse.user.prenom}}
+                                                                        </h5>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <p class="mt-3">{{reponse.contenu}}</p>
+                                                                <div style="display: flex;justify-content: end;">
+                                                                        {% if reponse_actif and reponse.id == reponse_actif.id %}
+                                                                            {% comment %} <div class="info-card p-3 pb-5 rounded-4 mt-3" style="background-color: var(--white);margin-bottom: 63px;">
+                                                                                <form action="{% url 'reponseqst' reponse.id annonce.id %}" method="post">
+                                                                                    {% csrf_token %}
+                                                                                    <textarea name="contenu" id="" cols="150" rows="3" class="form-control mb-2" placeholder="Votre commentaire ....."></textarea>
+                                                                                    <button type="submit" class="btn btn-primary mt-1" style="float: right;">Repondre</button>
+                                                                                </form>
+                                                                            </div> {% endcomment %}
+                                                                        {% endif %}
+                                                                </div>
+                                                            </div>
+                                            
+                                                            {% comment %} <div class="info-card p-3 rounded-4" style="background-color: var(--white);">
+                                                                <p>Aucun reponse dans ce commentaire</p>
+                                                            </div> {% endcomment %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% comment %} {% endif %} {% endcomment %}
+                                </div>
+                                
+                            </div>
+
+                        {% empty %}
+                            <p  style="margin-left: 23px;">Aucun Commentaire</p>
+                            <div class="info-card p-3 pb-5 rounded-4 mt-3" style="background-color: var(--white);margin-bottom: 63px;">
+                                <form action="{% url 'questionadd' annonce.id %}" method="post">
+                                    {% csrf_token %}
+                                    <textarea name="contenu" id="" cols="150" rows="3" class="form-control mb-2" placeholder="Votre commentaire ....."></textarea>
+                                    <button type="submit" class="btn btn-primary mt-1" style="float: right;">Ajouter commentaire</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                        <div class="info-card p-3 pb-5 rounded-4 mt-3" style="background-color: var(--white);margin-bottom: 63px;">
+                                <form action="{% url 'questionadd' annonce.id %}" method="post">
+                                    {% csrf_token %}
+                                    <textarea name="contenu" id="" cols="150" rows="3" class="form-control mb-2" placeholder="Votre commentaire ....."></textarea>
+                                    <button type="submit" class="btn btn-primary mt-1" style="float: right;">Ajouter commentaire</button>
+                                </form>
+                            </div>
+                    </div>
+                    
+                </div>
+            </div>
+        
+    </div>
+
+<style>
+    /* Styles généraux */
+    .container {
+        max-width: 1400px;
+        margin: auto;
+        padding: 20px;
+    }
+
+    /* Animations et transitions */
+    .card {
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--glass-shadow) !important;
+    }
+
+    /* Styles pour les icônes */
+    .icon-wrapper {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .icon-wrapper:hover {
+        transform: scale(1.1);
+        background-color: var(--beige) !important;
+    }
+
+    /* Carrousel stylisé */
+    .carousel-item img {
+        max-height: 600px;
+        object-fit: contain;
+        width: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .carousel-item:hover img {
+        transform: scale(1.02);
+    }
+
+    /* Contrôles du carrousel */
+    .carousel-control-prev,
+    .carousel-control-next {
+        background-color: var(--glass-bg);
+        width: 60px;
+        height: 60px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        border: 1px solid var(--glass-border);
+    }
+
+    .carousel-control-prev:hover,
+    .carousel-control-next:hover {
+        background-color: var(--burgundy);
+    }
+
+    /* Styles pour les cartes d'information */
+    .info-card {
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    /* Styles pour l'avatar du vendeur */
+    .avatar-wrapper {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--beige-light);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .avatar-wrapper:hover {
+        transform: scale(1.1);
+        background-color: var(--beige);
+    }
+
+    /* Styles pour les badges */
+    .badge {
+        transition: all 0.3s ease;
+    }
+
+    .badge:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    /* Styles pour les boutons */
+    .btn {
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--glass-shadow);
+        opacity: 0.9;
+    }
+
+    /* Espacement et typographie */
+    .card-title {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem;
+    }
+
+    .mb-1 {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 10px;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+        }
+        
+        .icon-wrapper {
+            width: 40px;
+            height: 40px;
+        }
+    }
+</style>
+{% endblock %}

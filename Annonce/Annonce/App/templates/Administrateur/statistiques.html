@@ -1,0 +1,499 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+<div class="stats-container">
+    <!-- Header -->
+    <div class="stats-header">
+        <h1><i class="fas fa-chart-pie"></i> Tableau de Bord Statistique</h1>
+        <p class="last-update">Dernière mise à jour: {{ last_update|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <!-- Distribution Stats -->
+    <div class="distribution-stats">
+        <!-- Category Distribution -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3><i class="fas fa-tags"  style=" color: var(--beige-light);"></i> Par Catégorie</h3>
+            </div>
+            <div class="stat-content">
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="stat-details">
+                    {% for category in annonces_by_category %}
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <span class="stat-label">{{ category.categorie__nom }}</span>
+                            <span class="stat-value">{{ category.count }}</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: {{ category.percentage }}%"></div>
+                            <span class="stat-percentage">{{ category.percentage|floatformat:1 }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Distribution -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3><i class="fas fa-money-bill-wave"  style=" color: var(--beige-light);"></i> Par Tranche de Prix</h3>
+            </div>
+            <div class="stat-content">
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+                <div class="stat-details">
+                    {% for range in price_ranges %}
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <span class="stat-label">{{ range.label }}</span>
+                            <span class="stat-value">{{ range.count }}</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: {{ range.percentage }}%"></div>
+                            <span class="stat-percentage">{{ range.percentage|floatformat:1 }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Distribution -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3><i class="fas fa-map-marked-alt" style=" color: var(--beige-light);"></i> Par Localisation</h3>
+            </div>
+            <div class="stat-content">
+                <div class="chart-container">
+                    <canvas id="locationChart"></canvas>
+                </div>
+                <div class="stat-details">
+                    {% for location in locations %}
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <span class="stat-label">{{ location.localisation }}</span>
+                            <span class="stat-value">{{ location.count }}</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: {{ location.percentage }}%"></div>
+                            <span class="stat-percentage">{{ location.percentage|floatformat:1 }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --deep-purple: #210F37;
+        --burgundy: #4F1C51;
+        --orange: #A55B4B;
+        --beige: #DCA06D;
+        --white: #FFFFFF;
+        --light-beige: #F5ECE0;
+        --deep-purple-light: #2d1a4a;
+        --burgundy-light: #6b2a6e;
+        --orange-light: #c06b5b;
+        --beige-light: #e4b78d;
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+
+    .stats-container {
+        padding: 2rem;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .stats-header {
+        text-align: center;
+        margin: 2rem auto 2.5rem;
+        background: var(--white);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        max-width: 1200px;
+        border-top: 5px solid var(--burgundy);
+        background: linear-gradient(to right, var(--white), var(--light-beige));
+    }
+
+    .stats-header h1 {
+        color: var(--deep-purple);
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        font-weight: 600;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .last-update {
+        color: var(--burgundy);
+        font-size: 0.9rem;
+        font-style: italic;
+        opacity: 0.8;
+    }
+
+    .distribution-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .stat-card {
+        background: var(--white);
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        border-top: 4px solid var(--orange);
+        backdrop-filter: blur(5px);
+        background-color: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        border-color: var(--orange-light);
+    }
+
+    .stat-header {
+        background: linear-gradient(to right, var(--deep-purple), var(--burgundy));
+        padding: 1.2rem;
+        color: var(--beige-light);
+    }
+
+    .stat-header h3 {
+        font-size: 1.3rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .chart-container {
+        height: 220px;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .stat-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: auto;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .stat-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-label {
+        color: var(--deep-purple);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .stat-value {
+        color: var(--burgundy);
+        font-weight: 600;
+        font-size: 1rem;
+        background: rgba(79, 28, 81, 0.1);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+    }
+
+    .progress-container {
+        width: 100%;
+        height: 8px;
+        background-color: rgba(220, 160, 109, 0.2);
+        border-radius: 4px;
+        position: relative;
+        margin-top: 0.3rem;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(to right, var(--beige), var(--orange));
+        transition: width 1s ease-in-out;
+    }
+
+    .stat-percentage {
+        position: absolute;
+        right: 0;
+        top: -20px;
+        font-size: 0.8rem;
+        color: var(--burgundy);
+        font-weight: 500;
+    }
+
+    /* Couleurs spécifiques par carte */
+    .stat-card:nth-child(1) { border-top-color: var(--burgundy); }
+    .stat-card:nth-child(1) .stat-value { color: var(--burgundy); background: rgba(79, 28, 81, 0.1); }
+    .stat-card:nth-child(1) .progress-bar { background: linear-gradient(to right, var(--burgundy-light), var(--burgundy)); }
+    
+    .stat-card:nth-child(2) { border-top-color: var(--deep-purple); }
+    .stat-card:nth-child(2) .stat-value { color: var(--deep-purple); background: rgba(33, 15, 55, 0.1); }
+    .stat-card:nth-child(2) .progress-bar { background: linear-gradient(to right, var(--deep-purple-light), var(--deep-purple)); }
+    
+    .stat-card:nth-child(3) { border-top-color: var(--orange); }
+    .stat-card:nth-child(3) .stat-value { color: var(--orange); background: rgba(165, 91, 75, 0.1); }
+    .stat-card:nth-child(3) .progress-bar { background: linear-gradient(to right, var(--orange-light), var(--orange)); }
+
+    @media (max-width: 768px) {
+        .stats-container {
+            padding: 1rem;
+        }
+        
+        .stats-header {
+            padding: 1.5rem;
+        }
+        
+        .stats-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .distribution-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-container {
+            height: 200px;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .distribution-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Colors array using your palette
+        const colors = [
+            'rgba(79, 28, 81, 0.8)',    // burgundy
+            'rgba(33, 15, 55, 0.8)',    // deep-purple
+            'rgba(165, 91, 75, 0.8)',   // orange
+            'rgba(220, 160, 109, 0.8)', // beige
+            'rgba(107, 42, 110, 0.8)',  // burgundy-light
+            'rgba(45, 26, 74, 0.8)'     // deep-purple-light
+        ];
+
+        // Category Chart
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    {% for category in annonces_by_category %}
+                        '{{ category.categorie__nom }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    data: [
+                        {% for category in annonces_by_category %}
+                            {{ category.count }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: colors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 11,
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: 'var(--deep-purple)'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'var(--deep-purple)',
+                        titleFont: {
+                            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                            size: 12
+                        },
+                        bodyFont: {
+                            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                            size: 12
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Price Chart
+        const priceCtx = document.getElementById('priceChart').getContext('2d');
+        new Chart(priceCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    {% for range in price_ranges %}
+                        '{{ range.label }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'Annonces',
+                    data: [
+                        {% for range in price_ranges %}
+                            {{ range.count }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: 'rgba(165, 91, 75, 0.8)',
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: 'rgba(165, 91, 75, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'var(--deep-purple)',
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.raw} annonces`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            color: 'var(--deep-purple)',
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: 'var(--deep-purple)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Location Chart
+        const locationCtx = document.getElementById('locationChart').getContext('2d');
+        new Chart(locationCtx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    {% for location in locations %}
+                        '{{ location.localisation }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    data: [
+                        {% for location in locations %}
+                            {{ location.count }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: colors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 11,
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: 'var(--deep-purple)'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'var(--deep-purple)',
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

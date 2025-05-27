@@ -1,0 +1,268 @@
+{% extends 'Utilisateur/Reçu_message.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Messagerie client</title>
+    <link rel="stylesheet" href="{% static 'css/css_secretaire/chat.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<style>
+    /* Reset */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f9fafb;
+        color: #111827;
+    }
+
+    .chat-interface {
+        display: flex;
+        height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        background-color: #ffffff;
+        border-right: 1px solid #e5e7eb;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .sidebar h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #111827;
+    }
+
+    .doctor-list {
+        list-style: none;
+    }
+
+    .doctor-item {
+        margin-bottom: 10px;
+    }
+
+    .doctor-item a {
+        text-decoration: none;
+        color: #111827;
+        display: block;
+        padding: 10px 14px;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+        background-color: #f3f4f6;
+    }
+
+    .doctor-item a:hover {
+        background-color: #e5e7eb;
+    }
+
+    .doctor-item.active a {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+        font-weight: 500;
+    }
+
+    /* Chat section */
+    .chat-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        background-color: #ffffff;
+    }
+
+    /* Header */
+    .chat-header {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 15px;
+    }
+
+    .chat-header h3 {
+        font-size: 18px;
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    /* Messages */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .message {
+        max-width: 70%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 14px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .message.sent {
+        align-self: flex-end;
+        background-color: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .message.received {
+        align-self: flex-start;
+        background-color: #f3f4f6;
+        color: #374151;
+    }
+
+    .message small {
+        display: block;
+        margin-top: 5px;
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    /* Form */
+    .message-form {
+        display: flex;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 15px;
+        margin-top: 15px;
+        gap: 10px;
+    }
+
+    .message-form input[type="text"] {
+        flex: 1;
+        padding: 10px 15px;
+        border-radius: 9999px;
+        border: 1px solid #d1d5db;
+        background-color: #f9fafb;
+        transition: border-color 0.3s ease;
+    }
+
+    .message-form input[type="text"]:focus {
+        border-color: #60a5fa;
+        outline: none;
+    }
+
+    .message-form button {
+        padding: 10px 20px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 9999px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .message-form button:hover {
+        background-color: #2563eb;
+    }
+
+    /* Empty state */
+    .no-message {
+        text-align: center;
+        color: #9ca3af;
+        font-style: italic;
+        margin-top: 20px;
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .chat-interface {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .chat-section {
+            padding: 15px;
+        }
+    }
+    .message.sent {
+        align-self: flex-end;
+        background-color: #d1fae5;
+        color: #065f46;
+        border-top-right-radius: 0;
+    }
+
+    .message.received {
+        align-self: flex-start;
+        background-color: #f3f4f6;
+        color: #374151;
+        border-top-left-radius: 0;
+    }
+</style>
+<body>
+<div class="chat-interface">
+    <main class="chat-section">
+        <header class="chat-header">
+            {% if user_actif %}
+            <div style="display: flex;justify-content: space-between;justify-items: center;">
+                <h3>Conversation avec Clt. {{ user_actif.nom }}</h3>
+                <a href="{% url 'home_user' %}" style="float: right;text-decoration: none;color: black;" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour aux annonces
+                </a>
+            </div>
+                
+            {% else %}
+                <h3>Choisissez un Client</h3>
+            {% endif %}
+        </header>
+        <div class="chat-messages">
+            {% for msg in userMessages %}
+                {% if msg.userIdSource_id == request.user.id %}
+                    <div class="message sent">
+                        <h3 style="padding-bottom: 10px;">Moi</h3>
+                        <p>{{ msg.contenu }}</p>
+                        <small style="float: right;">Envoyé à {{ msg.date_envoi|date }}</small>
+                    </div>
+                {% else %}
+                    <div class="message received">
+                        <div style="display: flex; justify-content: space-between;">
+                            <h3 style="padding-bottom: 10px;margin: 0;">{{ msg.source|title }}</h3>
+                            {% comment %} {% if msg.vu == False %}
+                                <div style="display: flex; align-items: center; gap: 5px;padding-bottom: 5px;">
+                                    <form method="post" action="{% url 'marquerCommeLu' message_id=msg.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="medecin_id" value="{{msg.medecin_id}}">
+                                        <input type="hidden" name="secretaire_id" value="{{msg.secretaire_id}}">
+                                        <input type="checkbox" name="vu" id="" onchange="this.form.submit()">
+                                    </form>
+                                    <span>lus</span>
+                                </div>
+                            {% endif %} {% endcomment %}
+                        </div>
+                        <p>{{ msg.contenu }}</p>
+                        <small style="float: right;">Envoyé à {{ msg.date_denvoi|date }}</small>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p class="no-message">Écrivez votre premier message</p>
+            {% endfor %}
+        </div>        
+        {% if user_actif %}
+        <form method="post" action="{% url 'messageToUser' user_actif.id %}" class="message-form">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ user_actif.id }}">
+            <input type="text" name="contenu" placeholder="Écrire un message..." required>
+            <button type="submit">Envoyer</button>
+        </form>
+        {% endif %}
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,846 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+
+<div class="users-container">
+
+    <div class="header-content">
+
+            <div class="stat-card">
+                <i class="fas fa-times-circle"></i>
+                <div class="stat-info">
+                    <h3> {{ total_annonces_signalees }} </h3>
+                    <p>Annonces signalées</p>
+                </div>
+            </div>
+        
+    </div>
+
+
+    {% if Annonces %}
+
+    <div class="table-container">
+        <table class="reported-ads-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Titre</th>
+                    <th>Vendeur</th>
+                    <th>Date de publication</th>
+                    <th>Signalements</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in Annonces %}
+                <tr>
+                    <td class="image-cell">
+                        {% if item.annonce.images %}
+                        <img src="{{ MEDIA_URL }}{{ item.annonce.images.0 }}" alt="Image annonce" class="table-image">
+                        {% else %}
+                        <div class="no-image">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.annonce.titre }}</td>
+                    <td>{{ item.annonce.user.nom }} {{ item.annonce.user.prenom }}</td>
+                    <td>{{ item.annonce.datePublication }}</td>
+                    <td>
+                        <span class="signalement-badge">{{ item.nb_signalements }}</span>
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'preview_annonce' item.annonce.id %}" class="btn-preview">
+                            <i class="fas fa-eye"></i> Prévisualiser
+                        </a>
+                        <button class="btn-signals" onclick="showSignals({{ item.annonce.id }}, {{ item.descriptions|safe }})">
+                            <i class="fas fa-exclamation-triangle"></i> Signalements
+                        </button>
+                        <button class="btn-delete" onclick="deleteAd({{ item.annonce.id }})">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if annonces.has_other_pages %}
+    <div class="pagination-section">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if annonces.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ annonces.previous_page_number }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in annonces.paginator.page_range %}
+                <li class="page-item {% if annonces.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if annonces.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ annonces.next_page_number }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="no-annonces">
+        <i class="fas fa-box-open"></i>
+        <h2>Aucune annonce signalée</h2>
+
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Modal for Description -->
+<div id="descriptionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Description de l'annonce</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="modalDescription"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Signals -->
+<div id="signalsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Signalements</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="signalsList"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .users-container {
+        max-width: 1300px;
+        margin: 0 0 0 auto;
+        padding: 3rem;
+        margin-top: 4rem;
+    }
+
+
+    .search-select {
+    padding: 8px;
+    border-radius: 4px;
+    margin-right: 5px;
+    border: 1px solid #ddd;
+    }
+
+    .page-header {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        margin-top: 1rem;
+        box-shadow: var(--glass-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-title {
+        color: var(--deep-purple);
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .page-title i {
+        color: var(--burgundy);
+    }
+
+    .search-bar {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        margin-right: 6rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    }
+
+    .search-bar .input-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+        padding-right: 10rem;
+    }
+
+    .search-bar .form-control {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid transparent;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        color: var(--deep-purple);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-bar .form-control:focus {
+        border-color: var(--burgundy);
+        box-shadow: 0 4px 20px rgba(165, 91, 75, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .search-bar .btn-primary {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--burgundy);
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
+        color: white;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-bar .btn-primary:hover {
+        background: var(--deep-purple);
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 4px 15px rgba(165, 91, 75, 0.2);
+    }
+
+    .search-bar .form-select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid transparent;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        color: var(--deep-purple);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23A55B4B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.2em;
+        padding-right: 3rem;
+    }
+
+    .search-bar .form-select:focus {
+        border-color: var(--burgundy);
+        box-shadow: 0 4px 20px rgba(165, 91, 75, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .search-bar .form-select:hover {
+        border-color: var(--burgundy);
+    }
+
+    @media screen and (max-width: 768px) {
+        .search-bar {
+            padding: 1.5rem;
+        }
+
+        .search-bar .form-control,
+        .search-bar .btn-primary,
+        .search-bar .form-select {
+            font-size: 0.9rem;
+            padding: 0.8rem 1.2rem;
+        }
+
+        .search-bar .btn-primary {
+            padding: 0.6rem 1rem;
+        }
+    }
+
+    .table-container {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: var(--glass-shadow);
+        overflow-x: auto;
+    }
+
+    .reported-ads-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .reported-ads-table th,
+    .reported-ads-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .reported-ads-table th {
+        background-color: var(--deep-purple);
+        color: white;
+        font-weight: 500;
+    }
+
+    .reported-ads-table tr:hover {
+        background-color: rgba(245, 236, 224, 0.3);
+    }
+
+    .image-cell {
+        width: 100px;
+    }
+
+    .table-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .no-image {
+        width: 80px;
+        height: 80px;
+        background: var(--light-beige);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--orange);
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-preview,
+    .btn-signals,
+    .btn-description,
+    .btn-delete {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-preview {
+        background: var(--deep-purple);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-signals {
+        background: var(--orange);
+        color: white;
+    }
+
+    .btn-description {
+        background: var(--deep-purple);
+        color: white;
+    }
+
+    .btn-delete {
+        background: var(--orange);
+        color: white;
+    }
+
+    .btn-preview:hover,
+    .btn-signals:hover,
+    .btn-description:hover,
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 1.5rem;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--glass-shadow);
+    }
+
+    .stat-card i {
+        font-size: 2rem;
+        color: var(--burgundy);
+    }
+
+    .stat-info h3 {
+        color: var(--deep-purple);
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .stat-info p {
+        color: var(--burgundy);
+        margin: 0;
+    }
+
+    @media screen and (max-width: 768px) {
+        .users-container {
+            padding: 1rem;
+        }
+
+        .table-container {
+            padding: 1rem;
+        }
+
+        .actions-cell {
+            flex-direction: column;
+        }
+
+        .btn-preview,
+        .btn-signals,
+        .btn-description,
+        .btn-delete {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Animation de chargement */
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.05); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .avatar-loading {
+        animation: pulse 1.5s infinite;
+    }
+
+    .user-details {
+        flex: 1;
+        position: relative;
+    }
+
+    .user-details h3 {
+        color: var(--deep-purple);
+        font-size: 1.3rem;
+        margin-bottom: 0.4rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .user-details p {
+        color: var(--burgundy);
+        font-size: 0.95rem;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .user-status {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--orange);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .user-status.active {
+        background: #4CAF50;
+    }
+
+    .user-status.inactive {
+        background: #F44336;
+    }
+
+    .user-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 10px;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        color: var(--deep-purple);
+        font-weight: 600;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--burgundy);
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white;
+        background-color:var(--burgundy);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .action-btn:hover {
+        background-color: #2e59d9;
+        transform: translateY(-1px);
+    }
+
+    .btn-view {
+        background-color:var(--burgundy);
+    }
+
+    .btn-view:hover {
+        background-color:var(--burgundy-light);
+    }
+
+    .fa-eye {
+        font-size: 14px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .pending-requests {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(165, 91, 75, 0.1);
+        border-radius: 10px;
+    }
+
+    .pending-requests h4 {
+        color: var(--orange);
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .request-list {
+        list-style: none;
+    }
+
+    .request-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(165, 91, 75, 0.2);
+    }
+
+    .request-item:last-child {
+        border-bottom: none;
+    }
+
+    .request-title {
+        color: var(--deep-purple);
+        font-size: 0.9rem;
+    }
+
+    .request-date {
+        color: var(--burgundy);
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 1024px) {
+        .users-container {
+            margin-left: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .search-bar {
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+        }
+
+        .users-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .user-avatar {
+            width: 55px;
+            height: 55px;
+        }
+
+        .user-avatar i {
+            font-size: 1.7rem;
+        }
+
+        .user-info {
+            gap: 1.2rem;
+            padding: 0.3rem;
+        }
+
+        .user-details h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .user-details p {
+            font-size: 0.85rem;
+        }
+
+        .user-status {
+            width: 8px;
+            height: 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+        }
+
+        .user-avatar i {
+            font-size: 1.5rem;
+        }
+
+        .user-info {
+            gap: 1rem;
+        }
+
+        .user-details h3 {
+            font-size: 1rem;
+        }
+
+        .user-details p {
+            font-size: 0.8rem;
+        }
+    }
+
+    .signalement-badge {
+        background-color: var(--orange);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .btn-signals {
+        background: var(--orange);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-signals:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .signal-item {
+        background: rgba(245, 236, 224, 0.3);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--orange);
+    }
+
+    .signal-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .signal-item p {
+        margin: 0;
+        color: var(--burgundy);
+        line-height: 1.6;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 15px;
+        width: 80%;
+        max-width: 600px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        animation: modalFadeIn 0.3s ease;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        color: var(--deep-purple);
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .modal-body p {
+        color: var(--burgundy);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .close {
+        color: var(--burgundy);
+        font-size: 1.8rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .close:hover {
+        color: var(--orange);
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .modal-content {
+            width: 95%;
+            margin: 10% auto;
+        }
+
+        .modal-header h2 {
+            font-size: 1.2rem;
+        }
+
+        .modal-body {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<script>
+
+
+    function showSignals(adId, signals) {
+        const modal = document.getElementById('signalsModal');
+        const signalsList = document.getElementById('signalsList');
+        const closeBtn = modal.getElementsByClassName('close')[0];
+
+        // Clear previous signals
+        signalsList.innerHTML = '';
+        
+        // Add each signal to the list
+        signals.forEach((signal, index) => {
+            const signalElement = document.createElement('div');
+            signalElement.className = 'signal-item';
+            signalElement.innerHTML = `<p><strong>Signalement ${index + 1}:</strong> ${signal}</p>`;
+            signalsList.appendChild(signalElement);
+        });
+
+        modal.style.display = 'block';
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    }
+
+    function deleteAd(adId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
+            // Add your delete logic here
+            const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{% url 'Supprimer' 0 %}`.replace('0', adId);
+                
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = 'csrfmiddlewaretoken';
+                csrf.value = '{{ csrf_token }}';
+                
+                form.appendChild(csrf);
+                document.body.appendChild(form);
+                form.submit();
+        }
+    }
+
+</script>
+
+{% endblock content %}

@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% block sidebar %}{% endblock sidebar %}
+
+<div class="modifier-annonce-container">
+    <div class="header-section">
+        <div class="header-content">
+            <h1>Modifier l'annonce</h1>
+            <p class="subtitle">{{annonce.titre}}</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        Identifiants invalides. Veuillez réessayer.
+    </div>
+    {% endif %}
+
+    <div class="form-container">
+        <form method="post" class="edit-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3><i class="fas fa-info-circle"></i> Informations principales</h3>
+                <div class="form-group">
+                    <label class="form-label">Titre</label>
+                    {{ form.titre }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    {{ form.description }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Prix (€)</label>
+                    {{ form.prix }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-cog"></i> Paramètres</h3>
+                <div class="form-group">
+                    <label class="form-label">Statut</label>
+                    {{ form.statut }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Catégorie</label>
+                    {{ form.categorie }}
+                </div>
+                
+                
+                <div class="form-group premium-option">
+                    <div class="form-check">
+                        {{ form.isPremieum }}
+                        <label class="form-check-label">
+                            <i class="fas fa-crown"></i> Annonce Premium
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'mes_annonces' %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .modifier-annonce-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: var(--light-beige);
+        min-height: 100vh;
+    }
+
+    .header-section {
+        background-color: var(--white);
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: var(--glass-shadow);
+        margin-bottom: 2rem;
+        border: 1px solid var(--beige-light);
+    }
+
+    .header-content h1 {
+        color: var(--deep-purple);
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: var(--burgundy);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .alert-container {
+        margin-bottom: 2rem;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: var(--white);
+        border: 1px solid var(--beige-light);
+    }
+
+    .alert-danger {
+        color: var(--burgundy);
+        border-color: var(--burgundy);
+    }
+
+    .alert i {
+        font-size: 1.2rem;
+    }
+
+    .form-container {
+        background-color: var(--white);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: var(--glass-shadow);
+        border: 1px solid var(--beige-light);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--beige-light);
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .form-section h3 {
+        color: var(--deep-purple);
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-section h3 i {
+        color: var(--burgundy);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        color: var(--deep-purple);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--beige-light);
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: var(--white);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--burgundy);
+        box-shadow: 0 0 0 3px rgba(79, 28, 81, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .premium-option {
+        background-color: var(--beige-light);
+        padding: 1rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+
+    .premium-option .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .premium-option .form-check-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--deep-purple);
+        font-weight: 500;
+    }
+
+    .premium-option .form-check-label i {
+        color: var(--orange);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn-cancel, .btn-save {
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-cancel {
+        background-color: var(--beige-light);
+        color: var(--deep-purple);
+    }
+
+    .btn-save {
+        background-color: var(--burgundy);
+        color: var(--white);
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-cancel:hover, .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    @media screen and (max-width: 768px) {
+        .modifier-annonce-container {
+            padding: 1rem;
+        }
+
+        .form-container {
+            padding: 1.5rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-cancel, .btn-save {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}

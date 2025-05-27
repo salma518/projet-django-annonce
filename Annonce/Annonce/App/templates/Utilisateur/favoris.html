@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}Mes Favoris - Echo-Anc{% endblock %}
+
+{% block content %}
+
+<div class="col-md-9 col-lg-10 main-content">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <h3 class="mb-4">    
+        <a href="{% url 'home_user' %}" class="back-btn"style="color: var(--light-beige);">
+                <i class="fas fa-arrow-left"> </i>
+                Retour
+        </a></h3>
+    <h2 class="mb-4" style="color: var(--light-beige);">Mes Annonces Favoris</h2>
+    <div class="row">
+        {% if favoris %}
+            {% for favori in favoris %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="announcement-card">
+                        
+                        <!-- Carousel pour les images -->
+                        {% if favori.annonce.images %}
+                        <div id="annonceCarousel{{ favori.annonce.id }}" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                {% for image in favori.annonce.images %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <img src="{{ MEDIA_URL }}{{ image }}" class="d-block w-100" alt="Image annonce" style="height: 250px; object-fit: cover;">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel{{ favori.annonce.id }}" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Précédent</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel{{ favori.annonce.id }}" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Suivant</span>
+                            </button>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="p-3">
+                            <h5>{{ favori.annonce.titre }}</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-tag me-2"></i>
+                                <span class="price-tag">Prix: {{ favori.annonce.prix }} €</span>
+                            </p>
+                            <p class="small text-truncate description">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {{ favori.annonce.description|truncatewords:15 }}
+                            </p>
+                            <a href="{% url 'detail_annonce' favori.annonce.id %}" class="btn btn-custom">
+                                <i class="fas fa-eye me-2"></i>Voir détails
+                            </a>
+
+                            <form method="post" action="{% url 'supprimer_des_favoris' favori.annonce.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-custom">
+                                    <i class="fa-solid fa-xmark "></i>Retirer
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">Aucune annonce favorite pour le moment.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+<style>
+    /* Favoris Page Styles */
+    .main-content {
+        padding: 2rem;
+    }
+
+    .announcement-card {
+        background: rgba(245, 236, 224, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .announcement-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .price-tag {
+        color: #A55B4B; /* Orange */
+        font-weight: bold;
+    }
+
+    .btn-outline-danger {
+        margin-bottom: 1rem;
+    }
+
+    .carousel-inner img {
+        height: 250px;
+        object-fit: cover;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .alert {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #4F1C51; /* Bordeaux */
+    }
+</style>
+{% endblock %}

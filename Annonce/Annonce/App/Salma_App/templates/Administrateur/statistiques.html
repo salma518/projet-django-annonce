@@ -1,0 +1,338 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+<div class="stats-container">
+    <!-- Header -->
+    <div class="stats-header">
+        <h1><i class="fas fa-chart-line"></i> Statistiques de distribution</h1>
+        <p class="last-update">Dernière mise à jour: {{ last_update|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <!-- Distribution Stats -->
+    <div class="distribution-stats">
+        <!-- Category Distribution -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3><i class="fas fa-tags"></i> Distribution par catégorie</h3>
+            </div>
+            <div class="stat-content">
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="stat-details">
+                    {% for category in annonces_by_category %}
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <span class="stat-label">{{ category.categorie__nom }}</span>
+                            <span class="stat-value">{{ category.count }} annonces</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-bar-fill" style="width: {{ category.percentage }}%"></div>
+                        </div>
+                        <span class="stat-percentage">{{ category.percentage|floatformat:1 }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Distribution -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3><i class="fas fa-money-bill-wave"></i> Distribution par prix</h3>
+            </div>
+            <div class="stat-content">
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+                <div class="stat-details">
+                    {% for range in price_ranges %}
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <span class="stat-label">{{ range.label }}</span>
+                            <span class="stat-value">{{ range.count }} annonces</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-bar-fill" style="width: {{ range.percentage }}%"></div>
+                        </div>
+                        <span class="stat-percentage">{{ range.percentage|floatformat:1 }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Distribution -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3><i class="fas fa-map-marker-alt"></i> Distribution par localisation</h3>
+            </div>
+            <div class="stat-content">
+                <div class="chart-container">
+                    <canvas id="locationChart"></canvas>
+                </div>
+                <div class="stat-details">
+                    {% for location in locations %}
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <span class="stat-label">{{ location.localisation }}</span>
+                            <span class="stat-value">{{ location.count }} annonces</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-bar-fill" style="width: {{ location.percentage }}%"></div>
+                        </div>
+                        <span class="stat-percentage">{{ location.percentage|floatformat:1 }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stats-container {
+        padding: 1.5rem;
+        min-height: 100vh;
+    }
+
+    .stats-header {
+        text-align: center;
+        margin-top: 3rem;
+        margin-bottom: 1.5rem;
+        background: var(--light-beige);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-header h1 {
+        color: var(--deep-purple);
+        font-size: 2rem;
+        margin-bottom: 0.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+    }
+
+    .last-update {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+    }
+
+    .distribution-stats {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 2rem; /* Adjust gap as necessary */
+    }
+
+    .stat-card {
+        flex: 1 1 calc(25% - 2rem); /* Adjust percentage for desired width */
+        max-width: 300px; /* Set a max width as needed */
+        margin: 0; /* Remove margin to align cards */
+        padding: 1rem; /* Adjust padding as necessary */
+        background: var(--light-beige);
+        border-radius: 8px;
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
+        border-left: 3px solid #3498db;
+        backdrop-filter: blur(10px);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-header {
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid black;
+    }
+
+    .stat-header h3 {
+        color: #2c3e50;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .stat-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0;
+        border-bottom: 1px dashed black;
+    }
+
+    .stat-label {
+        color: #34495e;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .stat-value {
+        color: #3498db;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    /* Couleurs différentes pour chaque carte */
+    .stat-card:nth-child(1) { border-left-color: #3498db; }
+    .stat-card:nth-child(1) .stat-value { color: #3498db; }
+    
+    .stat-card:nth-child(2) { border-left-color: #2ecc71; }
+    .stat-card:nth-child(2) .stat-value { color: #2ecc71; }
+    
+    .stat-card:nth-child(3) { border-left-color: #e74c3c; }
+    .stat-card:nth-child(3) .stat-value { color: #e74c3c; }
+    
+    .stat-card:nth-child(4) { border-left-color: #f39c12; }
+    .stat-card:nth-child(4) .stat-value { color: #f39c12; }
+
+    @media (max-width: 768px) {
+        .stats-container {
+            padding: 0.8rem;
+        }
+
+        .stat-card {
+            flex: 1 1 calc(100% - 2rem); /* Stack on smaller screens */
+        }
+
+        .stats-header {
+            margin-left: 0;
+            padding: 1rem;
+        }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Category Chart
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    {% for category in annonces_by_category %}
+                        '{{ category.categorie__nom }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    data: [
+                        {% for category in annonces_by_category %}
+                            {{ category.count }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: [
+                        '#A55B4B',
+                        '#4A90E2',
+                        '#50E3C2',
+                        '#F5A623',
+                        '#D0021B',
+                        '#7ED321'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Price Chart
+        const priceCtx = document.getElementById('priceChart').getContext('2d');
+        new Chart(priceCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    {% for range in price_ranges %}
+                        '{{ range.label }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'Nombre d\'annonces',
+                    data: [
+                        {% for range in price_ranges %}
+                            {{ range.count }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: '#A55B4B'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Location Chart
+        const locationCtx = document.getElementById('locationChart').getContext('2d');
+        new Chart(locationCtx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    {% for location in locations %}
+                        '{{ location.localisation }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    data: [
+                        {% for location in locations %}
+                            {{ location.count }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: [
+                        '#A55B4B',
+                        '#4A90E2',
+                        '#50E3C2',
+                        '#F5A623',
+                        '#D0021B',
+                        '#7ED321'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

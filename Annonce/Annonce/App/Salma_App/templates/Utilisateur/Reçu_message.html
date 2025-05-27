@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Messagerie Secrétaire</title>
+    <link rel="stylesheet" href="{% static 'css/css_secretaire/chat.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+</head>
+<body>
+<div class="chat-interface">
+    <aside class="sidebar">
+        <h2>Secrétaire</h2>
+        <ul class="doctor-list">
+            {% for secretaire in listeSecretaire %}
+                <li class="doctor-item">
+                    <a href="{% url 'chat_actif_medecin_secretaire' secretaire_id=secretaire.id %}">
+                        {% if secretaire.image == 'https://urls.fr/Q2tGOp' %}
+                            <img src="{{secretaire.image}}" alt="" width="15px"> Sec {{ secretaire.nom }} {{secretaire.prenom}}
+                        {% else %}
+                            <img src="{{secretaire.image.url}}" alt="" width="15px"> Sec {{ secretaire.nom }} {{secretaire.prenom}}
+                        {% endif %}
+                    </a>
+                </li>
+            {% endfor %}
+            <li class="doctor-item">
+                <a href="{% url 'homePageMedecin' %}">Retour Au Dashboard</a>
+            </li>
+        </ul>
+    </aside>
+    <main class="chat-section">
+        <header class="chat-header">
+            {% if secretaire_actif %}
+                <h3>Conversation avec Dr. {{ secretaire_actif.nom }}</h3>
+            {% else %}
+                <h3>Choisissez une Secretaire</h3>
+            {% endif %}
+        </header>
+        <div class="chat-messages">
+            {% for msg in secretaireMessages %}
+                {% if msg.source == request.user.nom %}
+                    <div class="message sent">
+                        <h3 style="padding-bottom: 10px;">Moi</h3>
+                        <p>{{ msg.message }}</p>
+                        <small style="float: right;">Envoyé à {{ msg.date_denvoi|date }}</small>
+                    </div>
+                {% else %}
+                    <div class="message received">
+                        <div style="display: flex; justify-content: space-between;">
+                            <h3 style="padding-bottom: 10px;margin: 0;">{{ msg.source|title }}</h3>
+                            {% if msg.vu == False %}
+                                <div style="display: flex; align-items: center; gap: 5px;padding-bottom: 5px;">
+                                    <form method="post" action="{% url 'marquerCommeLu' message_id=msg.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="medecin_id" value="{{msg.medecin_id}}">
+                                        <input type="hidden" name="secretaire_id" value="{{msg.secretaire_id}}">
+                                        <input type="checkbox" name="vu" id="" onchange="this.form.submit()">
+                                    </form>
+                                    <span>lus</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <p>{{ msg.message }}</p>
+                        <small style="float: right;">Envoyé à {{ msg.date_denvoi|date }}</small>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p class="no-message">Écrivez votre premier message</p>
+            {% endfor %}
+        </div>        
+        {% if secretaire_actif %}
+        <form method="post" action="{% url 'messageToSecretaire' %}" class="message-form">
+            {% csrf_token %}
+            <input type="hidden" name="secretaire_id" value="{{ secretaire_actif.id }}">
+            <input type="hidden" name="destination" value="{{ secretaire_actif.nom }} {{secretaire_actif.prenom}}">
+            <input type="text" name="message" placeholder="Écrire un message..." required>
+            <button type="submit">Envoyer</button>
+        </form>
+        {% endif %}
+    </main>
+</div>
+</body>
+</html>

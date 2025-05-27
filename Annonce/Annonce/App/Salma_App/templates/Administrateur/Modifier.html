@@ -1,0 +1,337 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+<main class="main-content">
+    <div class="admin-dashboard">
+        <!-- Header Section -->
+        <div class="dashboard-header">
+            <div class="header-left">
+                <a href="{% url 'Profil_Admin' form.instance.id %}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour au profil
+                </a>
+                <h1><i class="fas fa-user-edit"></i> Modifier mon profil</h1>
+            </div>
+        </div>
+
+        <!-- Edit Form Section -->
+        <div class="dashboard-section">
+            <div class="edit-form-container">
+                <form method="post" enctype="multipart/form-data" class="edit-form">
+                    {% csrf_token %}
+                    
+                    <!-- Profile Image Section -->
+                    <div class="profile-image-section">
+                        <div class="current-image">
+                            {% if form.instance.image %}
+                                <img src="{{ form.instance.image.url }}" alt="Photo de profil" id="profile-preview">
+                            {% else %}
+                                <div class="no-image">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="image-upload">
+                            <label for="id_image" class="upload-btn">
+                                <i class="fas fa-camera"></i>
+                                Changer la photo
+                            </label>
+                            {{ form.image }}
+                        </div>
+                    </div>
+
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> Informations personnelles</h3>
+                        
+                        <!-- First Name -->
+                        <div class="form-group">
+                            <label for="id_prenom">
+                                <i class="fas fa-user-tag"></i> Prénom
+                            </label>
+                            {{ form.prenom }}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="form-group">
+                            <label for="id_nom">
+                                <i class="fas fa-user-tag"></i> Nom
+                            </label>
+                            {{ form.nom }}
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="id_email">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                        <a href="{% url 'Profil_Admin' form.instance.id %}" class="btn-cancel">
+                            <i class="fas fa-times"></i> Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .main-content {
+        padding: 2rem;
+    }
+
+    .admin-dashboard {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .back-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--deep-purple);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        color: var(--burgundy);
+        transform: translateX(-5px);
+    }
+
+    .dashboard-header h1 {
+        color: var(--deep-purple);
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .dashboard-header h1 i {
+        color: var(--burgundy);
+    }
+
+    .edit-form-container {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .profile-image-section {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .current-image {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid var(--burgundy);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .current-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        background: var(--beige-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .no-image i {
+        font-size: 4rem;
+        color: var(--deep-purple);
+    }
+
+    .image-upload {
+        margin-top: 1rem;
+    }
+
+    .upload-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        background: var(--burgundy);
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .upload-btn:hover {
+        background: var(--deep-purple);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section h3 {
+        color: var(--deep-purple);
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-section h3 i {
+        color: var(--burgundy);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--deep-purple);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group label i {
+        color: var(--burgundy);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--deep-purple);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--burgundy);
+        box-shadow: 0 4px 20px rgba(165, 91, 75, 0.15);
+        outline: none;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-save, .btn-cancel {
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        border: none;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-save {
+        background: var(--burgundy);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: var(--deep-purple);
+        color: white;
+    }
+
+    .btn-save:hover, .btn-cancel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    @media screen and (max-width: 768px) {
+        .main-content {
+            padding: 1rem;
+        }
+
+        .edit-form-container {
+            padding: 1.5rem;
+        }
+
+        .current-image {
+            width: 120px;
+            height: 120px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-save, .btn-cancel {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prévisualisation de l'image
+    const imageInput = document.getElementById('id_image');
+    const profilePreview = document.getElementById('profile-preview');
+    const noImage = document.querySelector('.no-image');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (profilePreview) {
+                    profilePreview.src = e.target.result;
+                } else {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Photo de profil';
+                    img.id = 'profile-preview';
+                    noImage.replaceWith(img);
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %}

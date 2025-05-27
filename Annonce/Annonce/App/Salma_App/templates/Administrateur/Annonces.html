@@ -1,0 +1,863 @@
+{% extends 'Administrateur/homePage.html' %}
+
+{% block content %}
+<!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+   
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+<div class="users-container">
+
+    <div class="header-content">
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <i class="fas fa-clock"></i>
+                <div class="stat-info">
+                    <h3>{{ annonce_non_validee }}</h3>
+                    <p>Annonces en attente</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-check-circle"></i>
+                <div class="stat-info">
+                    <h3>{{ annonce_validee }}</h3>
+                    <p>Annonces vérifiées</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-times-circle"></i>
+                <div class="stat-info">
+                    <h3> {{annonce_signalee}} </h3>
+                    <p>Annonces signalées</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-bullhorn"></i>
+            Gestion des Annonces
+        </h1>
+
+        <div class="search-bar">
+            <form method="get" class="mb-4" action="{% url 'Chercher_annonce' %}">
+                    <div class="input-group">
+                        <input type="text" 
+                            class="form-control" 
+                            name="q" 
+                            placeholder="Rechercher par titre ou user..."
+                            value="{{ query }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>Chercher
+                        </button>
+                    </div>
+            </form>
+    
+            <!-- Menu déroulant pour choisir le type de recherche -->
+             <form method="get" class="row g-3" action="{% url 'Chercher_annonce_statut' %}" >
+                    <div class="col-md-3">
+                        <select class="form-select" name="Statut" id="statut" onchange="this.form.submit()">
+                            <option value="Statut">Statut</option>
+                            <option value= '1' {% if  Statut  %}selected{% endif %}>Validee</option>
+                            <option value= '0' {% if  Statut == False %}selected{% endif %}>En_attente</option>
+                            <option value= 'All' >Tous</option>
+                        </select>
+                    </div>
+            </form>
+
+        </div>
+    </div>
+
+
+    {% if Annonces %}
+
+
+    <div class="annonces-grid">
+        {% for ad in Annonces %}
+        <div class="ad-card">
+            <div class="ad-image">
+                {% if ad.images %}
+                <div id="annonceCarousel{{ ad.id }}" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for image in ad.images %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <img src="{{ MEDIA_URL }}{{ image }}" class="d-block w-100" alt="Image annonce">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if ad.images|length > 1 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#annonceCarousel{{ ad.id }}" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#annonceCarousel{{ ad.id }}" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="no-image">
+                    <i class="fas fa-image"></i>
+                </div>
+                {% endif %}
+                
+                <div class="ad-status {{ ad.statut }}">
+                {% if ad.statut %}
+                 <div class="stat-label">Validee</div>
+                
+                {% else %} 
+                    <div class="stat-label"> En attente</div>
+                {% endif %}
+                </div>
+                
+            </div>
+            <div class="ad-content">
+                <h5>{{ ad.titre }}</h5>
+                <div class="ad-details">
+                    <p class="price">
+                        <i class="fas fa-tag"></i>
+                        <span>{{ ad.prix }} €</span>
+                    </p>
+                    <p class="date">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ ad.datePublication|date:"d/m/Y" }}
+                    </p>
+                </div>
+                <p class="description">{{ ad.description|truncatewords:15 }}</p>
+                <p class="description">Publier par : {{ ad.user.nom}} {{ ad.user.prenom}}</p>
+                <div class="ad-actions">
+                                
+                    <a href="{% url 'preview_annonce' ad.id %}" class="btn-preview">
+                        <i class="fas fa-eye"></i> Prévisualiser
+                    </a>
+
+                    {% if ad.statut == False %}
+                    
+                    <form method="post" action="{% url 'approve_annonce' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="annonce_id" value="{{ ad.id }}">
+                        <button type="submit" class="btn-approve">
+                            <i class="fas fa-check"></i> Approuver
+                        </button>
+                    </form>
+                    
+                    <form method="post" action="{% url 'reject_annonce' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="annonce_id" value="{{ ad.id }}">
+                        <div style="display: inline-block;">
+                            <button type="button" onclick="showRejectReason(this)" class="btn-reject">
+                                <i class="fas fa-times"></i> Rejeter
+                            </button>
+                            <input type="text" name="rejection_reason" id="reject-reason-{{ ad.id }}" 
+                                style="display: none;" placeholder="Raison du rejet" required>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Ajout de la pagination ici -->
+    {% if Annonces.has_other_pages %}
+        <div class="pagination-section">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if Annonces.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ Annonces.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if Statut %}&Statut={{ Statut }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in Annonces.paginator.page_range %}
+                        {% if Annonces.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if Statut %}&Statut={{ Statut }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if Annonces.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ Annonces.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if Statut %}&Statut={{ Statut }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+    <div class="no-annonces">
+        <i class="fas fa-box-open"></i>
+        <h2>Vous n'avez pas encore d'annonces</h2>
+        
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+    .users-container {
+        max-width: 1300px;
+        margin: 0 0 0 auto;
+        padding: 3rem;
+    }
+    .search-select {
+    padding: 8px;
+    border-radius: 4px;
+    margin-right: 5px;
+    border: 1px solid #ddd;
+}
+
+    .page-header {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        margin-top: 5rem;
+        box-shadow: var(--glass-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-title {
+        color: var(--deep-purple);
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .page-title i {
+        color: var(--burgundy);
+    }
+
+    .search-bar {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        margin-right: 6rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    }
+
+    .search-bar .input-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+        padding-right: 10rem;
+        margin-right: 2rem;
+    }
+
+    .search-bar .form-control {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid transparent;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        color: var(--deep-purple);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-bar .form-control:focus {
+        border-color: var(--burgundy);
+        box-shadow: 0 4px 20px rgba(165, 91, 75, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .search-bar .btn-primary {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--burgundy);
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
+        color: white;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        padding-right: 3rem;
+        padding-top: 1.5rem;
+    }
+
+    .search-bar .btn-primary:hover {
+        background: var(--deep-purple);
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 4px 15px rgba(165, 91, 75, 0.2);
+    }
+
+
+    .search-bar .form-select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid transparent;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        color: var(--deep-purple);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23A55B4B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.2em;
+        margin-left: 2rem;
+        margin-right: 5rem;
+    }
+
+    .search-bar .form-select:focus {
+        border-color: var(--burgundy);
+        box-shadow: 0 4px 20px rgba(165, 91, 75, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .search-bar .form-select:hover {
+        border-color: var(--burgundy);
+    }
+
+    @media screen and (max-width: 768px) {
+        .search-bar {
+            padding: 1.5rem;
+        }
+
+        .search-bar .form-control,
+        .search-bar .btn-primary,
+        .search-bar .form-select {
+            font-size: 0.9rem;
+            padding: 0.8rem 1.2rem;
+            
+        }
+
+        .search-bar .btn-primary {
+            padding: 0.6rem 1rem;
+        }
+    }
+
+    .annonces-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .ad-card {
+        background-color: var(--white);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: var(--glass-shadow);
+        transition: all 0.3s ease;
+        max-width: 350px;
+    }
+
+    .ad-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .ad-image {
+        position: relative;
+        height: 300px;
+        overflow: hidden;
+    }
+
+    .ad-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .ad-card:hover .ad-image img {
+        transform: scale(1.05);
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        background-color: var(--beige-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--deep-purple);
+        font-size: 2rem;
+    }
+
+    .ad-status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        background-color: var(--orange);
+        color: var(--white);
+    }
+
+    /* Styles spécifiques pour les boutons du carrousel */
+    .carousel-control-prev,
+    .carousel-control-next {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        opacity: 1;
+        transition: all 0.3s ease;
+    }
+
+    .carousel-control-prev {
+        left: 15px;
+    }
+
+    .carousel-control-next {
+        right: 15px;
+    }
+
+    .carousel-control-prev:hover,
+    .carousel-control-next:hover {
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .ad-content {
+        padding: 1.5rem;
+    }
+
+    .ad-content h5 {
+        color: var(--deep-purple);
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .ad-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .price, .date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--burgundy);
+        font-weight: 500;
+    }
+
+    .description {
+        color: var(--burgundy-light);
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    .ad-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        background-color: var(--beige-light);
+        color: var(--deep-purple);
+    }
+
+    .btn-view {
+        background-color: var(--orange);
+        color: var(--white);
+    }
+
+    .btn-delete {
+        background-color: var(--burgundy-light);
+        color: var(--white);
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .pagination-section {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-item .page-link {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        color: var(--deep-purple);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        background-color: var(--white);
+        border: 1px solid var(--beige-light);
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--burgundy);
+        color: var(--white);
+        border-color: var(--burgundy);
+    }
+
+    .page-item .page-link:hover {
+        background-color: var(--beige-light);
+        transform: translateY(-2px);
+    }
+
+    .no-annonces {
+        text-align: center;
+        padding: 4rem 2rem;
+        background-color: var(--white);
+        border-radius: 15px;
+        box-shadow: var(--glass-shadow);
+    }
+
+    .no-annonces i {
+        font-size: 4rem;
+        color: var(--burgundy-light);
+        margin-bottom: 1rem;
+    }
+
+    .no-annonces h2 {
+        color: var(--deep-purple);
+        margin-bottom: 1rem;
+    }
+
+    .no-annonces p {
+        color: var(--burgundy);
+        margin-bottom: 2rem;
+    }
+
+    .btn-create {
+        padding: 1rem 2rem;
+        background-color: var(--burgundy);
+        color: var(--white);
+        border-radius: 50px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-create:hover {
+        background-color: var(--burgundy-light);
+        transform: translateY(-2px);
+        box-shadow: var(--glass-shadow);
+    }
+
+
+    /* Style responsive */
+    @media (max-width: 768px) {
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .avatar-placeholder .fa-user {
+            font-size: 50px;
+        }
+
+        .carousel-control-prev,
+        .carousel-control-next {
+            width: 30px;
+            height: 30px;
+        }
+
+        .carousel-control-prev {
+            left: 5px;
+        }
+
+        .carousel-control-next {
+            right: 5px;
+        }
+    }
+
+    /* Animation de chargement */
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.05); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .avatar-loading {
+        animation: pulse 1.5s infinite;
+    }
+
+    .user-details {
+        flex: 1;
+        position: relative;
+    }
+
+    .user-details h3 {
+        color: var(--deep-purple);
+        font-size: 1.3rem;
+        margin-bottom: 0.4rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .user-details p {
+        color: var(--burgundy);
+        font-size: 0.95rem;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .user-status {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--orange);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .user-status.active {
+        background: #4CAF50;
+    }
+
+    .user-status.inactive {
+        background: #F44336;
+    }
+
+    .user-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 10px;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        color: var(--deep-purple);
+        font-weight: 600;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--burgundy);
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white;
+        background-color:var(--burgundy);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .action-btn:hover {
+        background-color: #2e59d9;
+        transform: translateY(-1px);
+    }
+
+    .btn-view {
+        background-color:var(--burgundy);
+    }
+
+    .btn-view:hover {
+        background-color:var(--burgundy-light);
+    }
+
+    .fa-eye {
+        font-size: 14px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .pending-requests {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(165, 91, 75, 0.1);
+        border-radius: 10px;
+    }
+
+    .pending-requests h4 {
+        color: var(--orange);
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .request-list {
+        list-style: none;
+    }
+
+    .request-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(165, 91, 75, 0.2);
+    }
+
+    .request-item:last-child {
+        border-bottom: none;
+    }
+
+    .request-title {
+        color: var(--deep-purple);
+        font-size: 0.9rem;
+    }
+
+    .request-date {
+        color: var(--burgundy);
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 1024px) {
+        .users-container {
+            margin-left: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .search-bar {
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+        }
+
+        .users-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .user-avatar {
+            width: 55px;
+            height: 55px;
+        }
+
+        .user-avatar i {
+            font-size: 1.7rem;
+        }
+
+        .user-info {
+            gap: 1.2rem;
+            padding: 0.3rem;
+        }
+
+        .user-details h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .user-details p {
+            font-size: 0.85rem;
+        }
+
+        .user-status {
+            width: 8px;
+            height: 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+        }
+
+        .user-avatar i {
+            font-size: 1.5rem;
+        }
+
+        .user-info {
+            gap: 1rem;
+        }
+
+        .user-details h3 {
+            font-size: 1rem;
+        }
+
+        .user-details p {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+{% endblock content %}
